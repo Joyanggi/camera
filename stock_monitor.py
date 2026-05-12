@@ -191,6 +191,14 @@ def check_product(url: str) -> CheckResult:
     return CheckResult(url, normalize_url(url), url, "UNKNOWN", "지원하지 않는 URL")
 
 
+def source_label(url: str) -> str:
+    if "estore.kr.canon/" in url:
+        return "공홈"
+    if "naver.com/" in url:
+        return "네이버"
+    return "기타"
+
+
 def safe_osascript_text(value: str) -> str:
     return value.replace("\\", "\\\\").replace('"', '\\"')
 
@@ -255,7 +263,8 @@ def send_notification(
 
 def print_result(index: int, total: int, result: CheckResult) -> None:
     label = {"BUYABLE": "구매가능", "SOLD_OUT": "품절", "UNKNOWN": "확인필요"}.get(result.status, result.status)
-    print(f"  [{index}/{total}] {label} {result.name} | {result.detail}", flush=True)
+    source = source_label(result.url)
+    print(f"  [{index}/{total}] [{source}] {label} {result.name} | {result.detail}", flush=True)
 
 
 def main() -> None:
@@ -316,7 +325,7 @@ def main() -> None:
         for result in buyable_results:
             send_notification(
                 "카메라 재고 풀림 감지!",
-                f"{result.name} 구매 가능 신호: {result.detail}",
+                f"[{source_label(result.url)}] {result.name} 구매 가능 신호: {result.detail}",
                 result.url,
                 open_url=args.open,
                 sound_repeats=args.sound_repeats,
