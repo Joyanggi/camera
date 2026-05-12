@@ -10,6 +10,7 @@ import sys
 import time
 import warnings
 from dataclasses import dataclass
+from email.utils import parsedate_to_datetime
 from typing import Optional
 
 warnings.filterwarnings("ignore", message="urllib3 v2 only supports OpenSSL.*")
@@ -19,6 +20,7 @@ from bs4 import BeautifulSoup
 
 
 DEFAULT_INTERVAL_SECONDS = 35
+DEFAULT_BACKOFF_MINUTES = 10
 STATE_FILE = "stock_monitor_state.json"
 MACOS_SOUND_NAME = "Glass"
 MACOS_SOUND_FILE = f"/System/Library/Sounds/{MACOS_SOUND_NAME}.aiff"
@@ -61,10 +63,15 @@ class CheckResult:
     name: str
     status: str
     detail: str
+    retry_after_seconds: Optional[int] = None
 
     @property
     def is_buyable(self) -> bool:
         return self.status == "BUYABLE"
+
+    @property
+    def is_rate_limited(self) -> bool:
+        return self.status == "RATE_LIMITED"
 
 
 def now() -> str:
@@ -117,9 +124,41 @@ def fetch(url: str, *, naver: bool = False) -> requests.Response:
     return requests.get(url, headers=headers, timeout=15)
 
 
+def parse_retry_after(value: Optional[str]) -> Optional[int]:
+    if not value:
+        return None
+
+    value = value.strip()
+    if value.isdigit():
+        return max(int(value), 0)
+
+    try:
+        retry_at = parsedate_to_datetime(value)
+    except Exception:
+        return None
+
+    if retry_at.tzinfo is None:
+        retry_at = retry_at.replace(tzinfo=dt.timezone.utc)
+
+    seconds = int((retry_at - dt.datetime.now(dt.timezone.utc)).total_seconds())
+    return max(seconds, 0)
+
+
+def rate_limited_result(url: str, check_url: str, name: str, resp: requests.Response) -> CheckResult:
+    retry_after = parse_retry_after(resp.headers.get("Retry-After"))
+    if retry_after:
+        detail = f"HTTP 429, 서버 요청 대기 {format_duration(retry_after)}"
+    else:
+        detail = "HTTP 429, 기본 백오프 적용"
+    return CheckResult(url, check_url, name, "RATE_LIMITED", detail, retry_after_seconds=retry_after)
+
+
 def check_canon(url: str) -> CheckResult:
     resp = fetch(url)
     name = page_title(resp.text, url.rsplit("/", 1)[-1])
+
+    if resp.status_code == 429:
+        return rate_limited_result(url, url, name, resp)
 
     if resp.status_code != 200:
         return CheckResult(url, url, name, "UNKNOWN", f"HTTP {resp.status_code}")
@@ -163,6 +202,9 @@ def check_naver(url: str) -> CheckResult:
     resp = fetch(check_url, naver=True)
     name = page_title(resp.text, url.rsplit("/", 1)[-1])
 
+    if resp.status_code == 429:
+        return rate_limited_result(url, check_url, name, resp)
+
     if resp.status_code != 200:
         return CheckResult(url, check_url, name, "UNKNOWN", f"HTTP {resp.status_code}")
 
@@ -197,6 +239,14 @@ def source_label(url: str) -> str:
     if "naver.com/" in url:
         return "네이버"
     return "기타"
+
+
+def format_duration(seconds: int) -> str:
+    seconds = max(int(seconds), 0)
+    minutes, sec = divmod(seconds, 60)
+    if minutes:
+        return f"{minutes}분 {sec}초"
+    return f"{sec}초"
 
 
 def safe_osascript_text(value: str) -> str:
@@ -262,7 +312,13 @@ def send_notification(
 
 
 def print_result(index: int, total: int, result: CheckResult) -> None:
-    label = {"BUYABLE": "구매가능", "SOLD_OUT": "품절", "UNKNOWN": "확인필요"}.get(result.status, result.status)
+    label = {
+        "BUYABLE": "구매가능",
+        "SOLD_OUT": "품절",
+        "UNKNOWN": "확인필요",
+        "RATE_LIMITED": "차단대기",
+        "SKIPPED": "건너뜀",
+    }.get(result.status, result.status)
     source = source_label(result.url)
     print(f"  [{index}/{total}] [{source}] {label} {result.name} | {result.detail}", flush=True)
 
@@ -274,10 +330,13 @@ def main() -> None:
     parser.add_argument("--open", action="store_true", help="구매 가능 감지 시 상품 페이지 열기")
     parser.add_argument("--test-alert", action="store_true", help="재고 확인 없이 알림과 소리만 테스트")
     parser.add_argument("--sound-repeats", type=int, default=2, help="재고 감지 시 추가 알림음 반복 횟수")
+    parser.add_argument("--backoff-minutes", type=int, default=DEFAULT_BACKOFF_MINUTES, help="HTTP 429 감지 시 해당 사이트를 쉬는 시간")
     args = parser.parse_args()
 
     interval = max(args.interval, 30)
+    backoff_seconds = max(args.backoff_minutes, 1) * 60
     state = load_state()
+    backoff_until: dict[str, dt.datetime] = {}
     cycle = 0
 
     if args.test_alert:
@@ -292,6 +351,7 @@ def main() -> None:
     print("카메라 재고 모니터링 시작 | Ctrl+C 로 종료", flush=True)
     print(f"확인 상품: {len(PRODUCT_URLS)}개", flush=True)
     print(f"확인 주기: {interval}초 이상", flush=True)
+    print(f"429 백오프: 사이트별 {format_duration(backoff_seconds)} 이상", flush=True)
     print("=" * 72, flush=True)
 
     while True:
@@ -300,12 +360,31 @@ def main() -> None:
         buyable_results = []
 
         for idx, url in enumerate(PRODUCT_URLS, start=1):
+            source = source_label(url)
+            source_backoff_until = backoff_until.get(source)
+            if source_backoff_until and dt.datetime.now() < source_backoff_until:
+                remaining = int((source_backoff_until - dt.datetime.now()).total_seconds())
+                fallback_name = state.get(url, {}).get("name") or url.rsplit("/", 1)[-1]
+                result = CheckResult(url, normalize_url(url), fallback_name, "SKIPPED", f"{format_duration(remaining)} 후 재개")
+                print_result(idx, len(PRODUCT_URLS), result)
+                continue
+
             try:
                 result = check_product(url)
             except Exception as exc:
                 result = CheckResult(url, normalize_url(url), url, "UNKNOWN", f"{type(exc).__name__}: {exc}")
 
             print_result(idx, len(PRODUCT_URLS), result)
+
+            if result.is_rate_limited:
+                retry_seconds = result.retry_after_seconds or 0
+                wait_seconds = max(backoff_seconds, retry_seconds) + random.randint(30, 120)
+                backoff_until[source] = dt.datetime.now() + dt.timedelta(seconds=wait_seconds)
+                print(
+                    f"  [{source}] 429 감지: {format_duration(wait_seconds)} 동안 {source} 요청을 건너뜁니다.",
+                    flush=True,
+                )
+                continue
 
             previous_status = state.get(url, {}).get("status")
             state[url] = {
