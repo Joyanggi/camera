@@ -10,4 +10,4 @@ echo "화면에 보이는 내용은 stock_monitor_live.log 에도 같이 저장�
 echo "========================================================================"
 echo
 
-caffeinate -dimsu python3 stock_monitor.py --interval 35 --open --sound-repeats 2 2>&1 | tee -a stock_monitor_live.log
+caffeinate -dimsu python3 stock_monitor.py --interval 35 --open --sound-repeats 2 --backoff-minutes 10 2>&1 | tee -a stock_monitor_live.log
