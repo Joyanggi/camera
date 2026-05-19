@@ -19,20 +19,22 @@ import requests
 from bs4 import BeautifulSoup
 
 
-DEFAULT_INTERVAL_SECONDS = 35
+DEFAULT_INTERVAL_SECONDS = 10
+MIN_INTERVAL_SECONDS = 5
 DEFAULT_BACKOFF_MINUTES = 10
 STATE_FILE = "stock_monitor_state.json"
 MACOS_SOUND_NAME = "Glass"
 MACOS_SOUND_FILE = f"/System/Library/Sounds/{MACOS_SOUND_NAME}.aiff"
 
 PRODUCT_URLS = [
+    "https://brand.naver.com/canonkorea/products/13104822623",
+    "https://brand.naver.com/canonkorea/products/13104765036",
+    "https://store.sony.co.kr/product-view/102263765",
     "https://estore.kr.canon/estore/detailview/41801",
     "https://estore.kr.canon/estore/detailview/41803",
     "https://estore.kr.canon/estore/detailview/42895",
     "https://estore.kr.canon/estore/detailview/40262",
     "https://estore.kr.canon/estore/detailview/40260",
-    "https://brand.naver.com/canonkorea/products/13104822623",
-    "https://brand.naver.com/canonkorea/products/13104765036",
     "https://brand.naver.com/canonkorea/products/10366295455",
     "https://brand.naver.com/canonkorea/products/10366295456",
 ]
@@ -53,6 +55,17 @@ NAVER_MOBILE_HEADERS = {
         "Mobile/15E148 Safari/604.1"
     ),
     "Referer": "https://search.shopping.naver.com/",
+}
+
+SONY_API_HEADERS = {
+    **COMMON_HEADERS,
+    "Accept": "application/json, text/plain, */*",
+    "Origin": "https://store.sony.co.kr",
+    "Referer": "https://store.sony.co.kr/product-view/102263765",
+    "platform": "PC",
+    "clientId": "jkEJfXWkjf3NDwFlgc37xQ==",
+    "Version": "1.0",
+    "Content-Type": "application/json; charset=utf-8",
 }
 
 
@@ -225,7 +238,80 @@ def check_naver(url: str) -> CheckResult:
     return CheckResult(url, check_url, name, "UNKNOWN", "네이버 상태 필드 판정 실패")
 
 
+def sony_product_no(url: str) -> Optional[int]:
+    match = re.search(r"/product-view/(\d+)", url)
+    if not match:
+        return None
+    return int(match.group(1))
+
+
+def check_sony(url: str) -> CheckResult:
+    product_no = sony_product_no(url)
+    if not product_no:
+        return CheckResult(url, url, url, "UNKNOWN", "소니 상품 번호를 찾지 못함")
+
+    resp = requests.post(
+        "https://shop-api.e-ncp.com/products/search-by-nos",
+        headers={**SONY_API_HEADERS, "Referer": url},
+        json={"productNos": [product_no], "hasOptionValues": True},
+        timeout=15,
+    )
+    fallback_name = str(product_no)
+
+    if resp.status_code == 429:
+        return rate_limited_result(url, url, fallback_name, resp)
+
+    if resp.status_code != 200:
+        return CheckResult(url, url, fallback_name, "UNKNOWN", f"HTTP {resp.status_code}")
+
+    data = resp.json()
+    products = data.get("products") or []
+    if not products:
+        return CheckResult(url, url, fallback_name, "UNKNOWN", "소니 API에서 상품 정보 없음")
+
+    product = products[0]
+    base_info = product.get("baseInfo") or {}
+    status_info = product.get("status") or {}
+    option_values = product.get("optionValues") or []
+
+    name = clean_text(base_info.get("productName") or fallback_name)
+    sale_status = status_info.get("saleStatusType")
+    soldout = status_info.get("soldout")
+    display = status_info.get("display")
+    stock_values = [
+        value
+        for value in [
+            base_info.get("stockCnt"),
+            base_info.get("mainStockCnt"),
+            *(option.get("stockCnt") for option in option_values),
+        ]
+        if isinstance(value, int)
+    ]
+    max_stock = max(stock_values) if stock_values else None
+
+    detail = f"saleStatusType={sale_status}, soldout={soldout}, stock={max_stock}"
+
+    if display is False:
+        return CheckResult(url, url, name, "SOLD_OUT", f"{detail}, display=false")
+
+    if sale_status in {"STOP", "PROHIBITION", "READY", "FINISHED"}:
+        return CheckResult(url, url, name, "SOLD_OUT", detail)
+
+    if soldout is True:
+        return CheckResult(url, url, name, "SOLD_OUT", detail)
+
+    if sale_status == "ONSALE" and soldout is False:
+        return CheckResult(url, url, name, "BUYABLE", detail)
+
+    if max_stock is not None and max_stock > 0:
+        return CheckResult(url, url, name, "BUYABLE", detail)
+
+    return CheckResult(url, url, name, "UNKNOWN", detail)
+
+
 def check_product(url: str) -> CheckResult:
+    if "store.sony.co.kr/" in url:
+        return check_sony(url)
     if "naver.com/" in url:
         return check_naver(url)
     if "estore.kr.canon/" in url:
@@ -234,6 +320,8 @@ def check_product(url: str) -> CheckResult:
 
 
 def source_label(url: str) -> str:
+    if "store.sony.co.kr/" in url:
+        return "소니"
     if "estore.kr.canon/" in url:
         return "공홈"
     if "naver.com/" in url:
@@ -263,6 +351,34 @@ def run_system_command(args: list[str], label: str) -> bool:
     return False
 
 
+def enabled_external_targets() -> list[str]:
+    targets = []
+    if os.environ.get("SLACK_WEBHOOK_URL"):
+        targets.append("Slack")
+    return targets
+
+
+def send_slack_notification(text: str) -> None:
+    webhook_url = os.environ.get("SLACK_WEBHOOK_URL")
+    if not webhook_url:
+        return
+
+    try:
+        resp = requests.post(webhook_url, json={"text": text}, timeout=10)
+        if resp.status_code >= 400:
+            print(f"[경고] Slack 알림 실패: HTTP {resp.status_code} {resp.text[:200]}", flush=True)
+    except Exception as exc:
+        print(f"[경고] Slack 알림 실패: {type(exc).__name__}: {exc}", flush=True)
+
+
+def send_external_notifications(title: str, message: str, url: str = "") -> None:
+    text = f"[{title}]\n{message}"
+    if url:
+        text = f"{text}\n{url}"
+
+    send_slack_notification(text)
+
+
 def play_alert_sound(sound_repeats: int = 2) -> None:
     if sys.platform == "darwin":
         for _ in range(max(sound_repeats, 0)):
@@ -290,6 +406,8 @@ def send_notification(
     if url:
         print(f"링크: {url}", flush=True)
     print(f"{'=' * 72}\n", flush=True)
+
+    send_external_notifications(title, message, url)
 
     if sys.platform == "darwin":
         script = (
@@ -324,8 +442,8 @@ def print_result(index: int, total: int, result: CheckResult) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="캐논/네이버 카메라 재고 모니터")
-    parser.add_argument("--interval", type=int, default=DEFAULT_INTERVAL_SECONDS, help="확인 주기(초). 권장: 30초 이상")
+    parser = argparse.ArgumentParser(description="카메라 재고 모니터")
+    parser.add_argument("--interval", type=int, default=DEFAULT_INTERVAL_SECONDS, help="확인 주기(초). 너무 짧으면 429가 날 수 있음")
     parser.add_argument("--once", action="store_true", help="한 번만 확인하고 종료")
     parser.add_argument("--open", action="store_true", help="구매 가능 감지 시 상품 페이지 열기")
     parser.add_argument("--test-alert", action="store_true", help="재고 확인 없이 알림과 소리만 테스트")
@@ -333,7 +451,7 @@ def main() -> None:
     parser.add_argument("--backoff-minutes", type=int, default=DEFAULT_BACKOFF_MINUTES, help="HTTP 429 감지 시 해당 사이트를 쉬는 시간")
     args = parser.parse_args()
 
-    interval = max(args.interval, 30)
+    interval = max(args.interval, MIN_INTERVAL_SECONDS)
     backoff_seconds = max(args.backoff_minutes, 1) * 60
     state = load_state()
     backoff_until: dict[str, dt.datetime] = {}
@@ -352,6 +470,8 @@ def main() -> None:
     print(f"확인 상품: {len(PRODUCT_URLS)}개", flush=True)
     print(f"확인 주기: {interval}초 이상", flush=True)
     print(f"429 백오프: 사이트별 {format_duration(backoff_seconds)} 이상", flush=True)
+    targets = enabled_external_targets()
+    print(f"외부 알림: {', '.join(targets) if targets else '없음'}", flush=True)
     print("=" * 72, flush=True)
 
     while True:
