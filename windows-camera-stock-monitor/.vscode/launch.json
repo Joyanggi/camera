@@ -6,6 +6,7 @@
       "type": "python",
       "request": "launch",
       "program": "${workspaceFolder}/stock_monitor.py",
+      "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "envFile": "${workspaceFolder}/.env",
       "env": {

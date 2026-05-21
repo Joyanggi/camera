@@ -118,7 +118,7 @@ def load_env_file(path: str = ".env") -> None:
         return
 
     try:
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, "r", encoding="utf-8-sig") as f:
             lines = f.readlines()
     except Exception as exc:
         print(f"[경고] .env 파일 읽기 실패: {type(exc).__name__}: {exc}", flush=True)
