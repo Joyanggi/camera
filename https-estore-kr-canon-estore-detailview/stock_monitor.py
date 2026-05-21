@@ -38,12 +38,6 @@ PRODUCT_URLS = [
     "https://estore.kr.canon/estore/detailview/41803",
     # 소니 RX100M7
     "https://store.sony.co.kr/product-view/102263765",
-    # 기타 캐논 후보
-    "https://estore.kr.canon/estore/detailview/42895",
-    "https://estore.kr.canon/estore/detailview/40262",
-    "https://estore.kr.canon/estore/detailview/40260",
-    "https://brand.naver.com/canonkorea/products/10366295455",
-    "https://brand.naver.com/canonkorea/products/10366295456",
 ]
 
 COMMON_HEADERS = {
