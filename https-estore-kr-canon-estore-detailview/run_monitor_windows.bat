@@ -37,7 +37,7 @@ echo Slack 알림을 쓰려면 같은 폴더의 .env 파일에 SLACK_WEBHOOK_URL
 echo ========================================================================
 echo.
 
-%PY_CMD% stock_monitor.py --interval 10 --open --sound-repeats 3 --backoff-minutes 10
+%PY_CMD% stock_monitor.py --interval 10 --open --sound-repeats 3 --backoff-minutes 10 --naver-backoff-minutes 10 --naver-delay-min 3 --naver-delay-max 6
 
 echo.
 echo 모니터가 종료되었습니다.

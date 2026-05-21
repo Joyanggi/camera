@@ -23,6 +23,9 @@ from bs4 import BeautifulSoup
 DEFAULT_INTERVAL_SECONDS = 10
 MIN_INTERVAL_SECONDS = 5
 DEFAULT_BACKOFF_MINUTES = 10
+DEFAULT_NAVER_DELAY_MIN_SECONDS = 3.0
+DEFAULT_NAVER_DELAY_MAX_SECONDS = 6.0
+MAX_RATE_LIMIT_MULTIPLIER = 3
 STATE_FILE = "stock_monitor_state.json"
 MACOS_SOUND_NAME = "Glass"
 MACOS_SOUND_FILE = f"/System/Library/Sounds/{MACOS_SOUND_NAME}.aiff"
@@ -58,7 +61,9 @@ NAVER_MOBILE_HEADERS = {
         "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 "
         "Mobile/15E148 Safari/604.1"
     ),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     "Referer": "https://search.shopping.naver.com/",
+    "Upgrade-Insecure-Requests": "1",
 }
 
 SONY_API_HEADERS = {
@@ -394,6 +399,21 @@ def format_duration(seconds: int) -> str:
     return f"{sec}초"
 
 
+def request_delay_seconds(source: str, args: argparse.Namespace) -> float:
+    if source == "네이버":
+        delay_min = max(float(args.naver_delay_min), 0.0)
+        delay_max = max(float(args.naver_delay_max), delay_min)
+        return random.uniform(delay_min, delay_max)
+
+    return random.uniform(0.8, 1.8)
+
+
+def source_backoff_seconds(source: str, args: argparse.Namespace) -> int:
+    if source == "네이버":
+        return max(args.naver_backoff_minutes, 1) * 60
+    return max(args.backoff_minutes, 1) * 60
+
+
 def safe_osascript_text(value: str) -> str:
     return value.replace("\\", "\\\\").replace('"', '\\"')
 
@@ -527,12 +547,16 @@ def main() -> None:
     parser.add_argument("--test-alert", action="store_true", help="재고 확인 없이 알림과 소리만 테스트")
     parser.add_argument("--sound-repeats", type=int, default=2, help="재고 감지 시 추가 알림음 반복 횟수")
     parser.add_argument("--backoff-minutes", type=int, default=DEFAULT_BACKOFF_MINUTES, help="HTTP 429 감지 시 해당 사이트를 쉬는 시간")
+    parser.add_argument("--naver-backoff-minutes", type=int, default=DEFAULT_BACKOFF_MINUTES, help="네이버 HTTP 429 감지 시 네이버만 쉬는 시간")
+    parser.add_argument("--naver-delay-min", type=float, default=DEFAULT_NAVER_DELAY_MIN_SECONDS, help="네이버 상품 요청 후 최소 대기 시간(초)")
+    parser.add_argument("--naver-delay-max", type=float, default=DEFAULT_NAVER_DELAY_MAX_SECONDS, help="네이버 상품 요청 후 최대 대기 시간(초)")
     args = parser.parse_args()
 
     interval = max(args.interval, MIN_INTERVAL_SECONDS)
     backoff_seconds = max(args.backoff_minutes, 1) * 60
     state = load_state()
     backoff_until: Dict[str, dt.datetime] = {}
+    rate_limit_counts: Dict[str, int] = {}
     cycle = 0
 
     if args.test_alert:
@@ -548,6 +572,10 @@ def main() -> None:
     print(f"확인 상품: {len(PRODUCT_URLS)}개", flush=True)
     print(f"확인 주기: {interval}초 이상", flush=True)
     print(f"429 백오프: 사이트별 {format_duration(backoff_seconds)} 이상", flush=True)
+    print(
+        f"네이버 요청 간격: {args.naver_delay_min:.1f}~{args.naver_delay_max:.1f}초",
+        flush=True,
+    )
     targets = enabled_external_targets()
     print(f"외부 알림: {', '.join(targets) if targets else '없음'}", flush=True)
     print("=" * 72, flush=True)
@@ -579,16 +607,24 @@ def main() -> None:
 
             if result.is_rate_limited:
                 retry_seconds = result.retry_after_seconds or 0
-                wait_seconds = max(backoff_seconds, retry_seconds) + random.randint(30, 120)
+                rate_limit_counts[source] = min(
+                    rate_limit_counts.get(source, 0) + 1,
+                    MAX_RATE_LIMIT_MULTIPLIER,
+                )
+                source_backoff = source_backoff_seconds(source, args) * rate_limit_counts[source]
+                wait_seconds = max(source_backoff, retry_seconds) + random.randint(30, 120)
                 backoff_until[source] = dt.datetime.now() + dt.timedelta(seconds=wait_seconds)
                 print(
-                    f"  [{source}] 429 감지: {format_duration(wait_seconds)} 동안 {source} 요청을 건너뜁니다.",
+                    f"  [{source}] 429 감지: {format_duration(wait_seconds)} 동안 {source} 요청을 건너뜁니다. "
+                    f"(연속 {rate_limit_counts[source]}회)",
                     flush=True,
                 )
                 continue
 
             if result.is_network_error:
                 continue
+
+            rate_limit_counts[source] = 0
 
             previous_status = state.get(url, {}).get("status")
             state[url] = {
@@ -601,7 +637,7 @@ def main() -> None:
             if result.is_buyable and previous_status != "BUYABLE":
                 buyable_results.append(result)
 
-            time.sleep(random.uniform(0.8, 1.8))
+            time.sleep(request_delay_seconds(source, args))
 
         save_state(state)
 
