@@ -1,0 +1,59 @@
+name: Windows Camera Monitor Test
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/windows-monitor-test.yml"
+      - "windows-camera-stock-monitor/**"
+
+jobs:
+  windows-monitor-test:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: windows-camera-stock-monitor
+
+    env:
+      PYTHONUTF8: "1"
+      PYTHONIOENCODING: "utf-8"
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Configure UTF-8 console
+        shell: pwsh
+        run: |
+          chcp 65001
+          [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+          $OutputEncoding = [System.Text.Encoding]::UTF8
+
+      - name: Install dependencies
+        shell: pwsh
+        run: python -m pip install -r requirements.txt
+
+      - name: Validate Python syntax
+        shell: pwsh
+        run: python -m py_compile stock_monitor.py
+
+      - name: Show monitor options
+        shell: pwsh
+        run: python stock_monitor.py --help
+
+      - name: Run one stock check
+        shell: pwsh
+        run: >
+          python stock_monitor.py
+          --once
+          --sound-repeats 0
+          --backoff-minutes 10
+          --naver-backoff-minutes 10
+          --naver-delay-min 3
+          --naver-delay-max 6
