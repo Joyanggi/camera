@@ -20,6 +20,21 @@ import requests
 from bs4 import BeautifulSoup
 
 
+def configure_console_encoding() -> None:
+    if sys.platform == "win32":
+        try:
+            os.system("chcp 65001 > nul")
+        except Exception:
+            pass
+
+    for stream in [sys.stdout, sys.stderr]:
+        if hasattr(stream, "reconfigure"):
+            try:
+                stream.reconfigure(encoding="utf-8", errors="replace")
+            except Exception:
+                pass
+
+
 DEFAULT_INTERVAL_SECONDS = 10
 MIN_INTERVAL_SECONDS = 5
 DEFAULT_BACKOFF_MINUTES = 10
@@ -532,6 +547,7 @@ def print_result(index: int, total: int, result: CheckResult) -> None:
 
 
 def main() -> None:
+    configure_console_encoding()
     load_env_file()
 
     parser = argparse.ArgumentParser(description="카메라 재고 모니터")

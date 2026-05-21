@@ -1,0 +1,32 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Camera Stock Monitor",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/stock_monitor.py",
+      "console": "integratedTerminal",
+      "envFile": "${workspaceFolder}/.env",
+      "env": {
+        "PYTHONUTF8": "1",
+        "PYTHONIOENCODING": "utf-8"
+      },
+      "args": [
+        "--interval",
+        "10",
+        "--open",
+        "--sound-repeats",
+        "3",
+        "--backoff-minutes",
+        "10",
+        "--naver-backoff-minutes",
+        "10",
+        "--naver-delay-min",
+        "3",
+        "--naver-delay-max",
+        "6"
+      ]
+    }
+  ]
+}
