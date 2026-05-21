@@ -32,11 +32,6 @@ PRODUCT_URLS = [
     "https://store.sony.co.kr/product-view/102263765",
     "https://estore.kr.canon/estore/detailview/41801",
     "https://estore.kr.canon/estore/detailview/41803",
-    "https://estore.kr.canon/estore/detailview/42895",
-    "https://estore.kr.canon/estore/detailview/40262",
-    "https://estore.kr.canon/estore/detailview/40260",
-    "https://brand.naver.com/canonkorea/products/10366295455",
-    "https://brand.naver.com/canonkorea/products/10366295456",
 ]
 
 COMMON_HEADERS = {

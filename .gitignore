@@ -1,0 +1,6 @@
+.env
+.stock_monitor_env
+stock_monitor_state.json
+stock_monitor_live.log
+__pycache__/
+*.pyc
