@@ -1,0 +1,5 @@
+.env
+saeki_monitor_state.json
+saeki_monitor_live.log
+__pycache__/
+*.pyc

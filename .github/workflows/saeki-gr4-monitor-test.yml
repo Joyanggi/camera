@@ -1,0 +1,40 @@
+name: Saeki GR IV Monitor Test
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/saeki-gr4-monitor-test.yml"
+      - "saeki-gr4-stock-monitor/**"
+
+jobs:
+  saeki-gr4-monitor-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: saeki-gr4-stock-monitor
+
+    env:
+      PYTHONUTF8: "1"
+      PYTHONIOENCODING: "utf-8"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Validate Python syntax
+        run: python -m py_compile stock_monitor.py
+
+      - name: Show monitor options
+        run: python stock_monitor.py --help
+
+      - name: Run one stock check
+        run: python stock_monitor.py --once --sound-repeats 0 --backoff-minutes 10
