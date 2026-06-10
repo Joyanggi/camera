@@ -25,6 +25,8 @@ PRODUCT_URLS = [
     "https://www.plthink.com/shop/shopdetail.html?branduid=1926543&search=%B8%AE%C4%DA&sort=sellcnt&xcode=008&mcode=114&scode=001&GfDT=bm5%2BW15D",
     "https://www.plthink.com/shop/shopdetail.html?branduid=1926544&search=%B8%AE%C4%DA&sort=sellcnt&xcode=008&mcode=114&scode=001&GfDT=aml3U1U%3D",
     "https://www.plthink.com/shop/shopdetail.html?branduid=1929763&search=%B8%AE%C4%DA&sort=sellcnt&xcode=008&mcode=114&scode=001&GfDT=a253Ulw%3D",
+    "https://www.compuzone.co.kr/product/product_detail.htm?ProductNo=1293383",
+    "https://dkc.kr/product/%EB%A6%AC%EC%BD%94-gr4-gr-iv/762/category/76/display/1/",
 ]
 
 DEFAULT_INTERVAL_SECONDS = 10
@@ -42,6 +44,38 @@ HEADERS = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
     "Referer": "https://www.plthink.com/",
+}
+
+COMPUZONE_MOBILE_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) "
+        "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 "
+        "Mobile/15E148 Safari/604.1"
+    ),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
+    "Referer": "https://m.compuzone.co.kr/",
+}
+
+
+def site_label(url: str) -> str:
+    if "plthink.com" in url:
+        return "유쾌한생각"
+    if "compuzone.co.kr" in url:
+        return "컴퓨존"
+    if "dkc.kr" in url:
+        return "DKC"
+    return "기타"
+
+
+DKC_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+    ),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
+    "Referer": "https://dkc.kr/",
 }
 
 
@@ -128,11 +162,16 @@ def clean_text(value: str) -> str:
 
 def short_url(url: str) -> str:
     match = re.search(r"branduid=(\d+)", url)
-    return f"branduid={match.group(1)}" if match else url
+    if match:
+        return f"branduid={match.group(1)}"
+    match = re.search(r"ProductNo=(\d+)", url)
+    if match:
+        return f"ProductNo={match.group(1)}"
+    return url
 
 
 def fallback_name(url: str) -> str:
-    return f"플띵크 {short_url(url)}"
+    return f"{site_label(url)} {short_url(url)}"
 
 
 def decode_response(resp: requests.Response) -> str:
@@ -184,19 +223,23 @@ def format_duration(seconds: int) -> str:
 
 SOLDOUT_FLAG_RE = re.compile(r"ENP_VAR\.soldOut\s*=\s*'([YN])'")
 STO_STATE_RE = re.compile(r"sto_state\s*:\s*'([A-Z_]+)'")
+COMPUZONE_RESTOCK_RE = re.compile(r"pr_stock=Y")
 
 
-def check_product(url: str) -> CheckResult:
+def rate_limited_result(url: str, fallback: str, resp: requests.Response) -> CheckResult:
+    retry_after = parse_retry_after(resp.headers.get("Retry-After"))
+    detail = "HTTP 429, 기본 백오프 적용"
+    if retry_after:
+        detail = f"HTTP 429, 서버 요청 대기 {format_duration(retry_after)}"
+    return CheckResult(url, fallback, "RATE_LIMITED", detail, retry_after)
+
+
+def check_plthink(url: str) -> CheckResult:
     resp = requests.get(url, headers=HEADERS, timeout=15)
     fallback = fallback_name(url)
 
     if resp.status_code == 429:
-        retry_after = parse_retry_after(resp.headers.get("Retry-After"))
-        detail = "HTTP 429, 기본 백오프 적용"
-        if retry_after:
-            detail = f"HTTP 429, 서버 요청 대기 {format_duration(retry_after)}"
-        return CheckResult(url, fallback, "RATE_LIMITED", detail, retry_after)
-
+        return rate_limited_result(url, fallback, resp)
     if resp.status_code != 200:
         return CheckResult(url, fallback, "UNKNOWN", f"HTTP {resp.status_code}")
 
@@ -221,6 +264,113 @@ def check_product(url: str) -> CheckResult:
         return CheckResult(url, name, "SOLD_OUT", detail)
 
     return CheckResult(url, name, "UNKNOWN", detail)
+
+
+def mobile_compuzone_url(url: str) -> str:
+    return url.replace("https://www.compuzone.co.kr/", "https://m.compuzone.co.kr/")
+
+
+def compuzone_product_name(text: str, fallback: str) -> str:
+    soup = BeautifulSoup(text, "html.parser")
+    og_title = soup.select_one('meta[property="og:title"]')
+    if og_title and og_title.get("content"):
+        name = clean_text(og_title["content"])
+        return name.replace(" : 컴퓨존", "").strip() or fallback
+    if soup.title and soup.title.get_text(strip=True):
+        title = clean_text(soup.title.get_text(" ", strip=True))
+        return title.replace(" : 컴퓨존", "").strip() or fallback
+    return fallback
+
+
+def check_compuzone(url: str) -> CheckResult:
+    fetch_url = mobile_compuzone_url(url)
+    resp = requests.get(fetch_url, headers=COMPUZONE_MOBILE_HEADERS, timeout=15)
+    fallback = fallback_name(url)
+
+    if resp.status_code == 429:
+        return rate_limited_result(url, fallback, resp)
+    if resp.status_code != 200:
+        return CheckResult(url, fallback, "UNKNOWN", f"HTTP {resp.status_code}")
+
+    text = decode_response(resp)
+    name = compuzone_product_name(text, fallback)
+
+    restock_hits = len(COMPUZONE_RESTOCK_RE.findall(text))
+    detail = f"pr_stock=Y hits={restock_hits}"
+
+    if restock_hits > 0:
+        return CheckResult(url, name, "SOLD_OUT", detail)
+
+    # 추가 안전장치: 바로구매 버튼 (Add_Order PGNo) 존재 여부
+    has_buy_button = "Add_Order('PGNo','0'" in text
+    detail = f"{detail}, buyBtn={'Y' if has_buy_button else 'N'}"
+
+    if has_buy_button:
+        return CheckResult(url, name, "BUYABLE", detail)
+
+    return CheckResult(url, name, "UNKNOWN", detail)
+
+
+DKC_STOCK_NUMBER_RE = re.compile(r"var\s+stock_number\s*=\s*'(\d+)'")
+DKC_SOLDOUT_ICON_RE = re.compile(r"var\s+is_soldout_icon\s*=\s*'([YTNF])'")
+DKC_STOCK_JSON_RE = re.compile(r'"stock_number"\s*:\s*(\d+)')
+
+
+def dkc_product_name(text: str, fallback: str) -> str:
+    soup = BeautifulSoup(text, "html.parser")
+    og_title = soup.select_one('meta[property="og:title"]')
+    if og_title and og_title.get("content"):
+        name = clean_text(og_title["content"])
+        return re.sub(r"\s*-\s*DKC2?\s*$", "", name).strip() or fallback
+    if soup.title and soup.title.get_text(strip=True):
+        title = clean_text(soup.title.get_text(" ", strip=True))
+        return re.sub(r"\s*-\s*DKC2?\s*$", "", title).strip() or fallback
+    return fallback
+
+
+def check_dkc(url: str) -> CheckResult:
+    resp = requests.get(url, headers=DKC_HEADERS, timeout=15)
+    fallback = fallback_name(url)
+
+    if resp.status_code == 429:
+        return rate_limited_result(url, fallback, resp)
+    if resp.status_code != 200:
+        return CheckResult(url, fallback, "UNKNOWN", f"HTTP {resp.status_code}")
+
+    text = resp.text
+    name = dkc_product_name(text, fallback)
+
+    stock_match = DKC_STOCK_NUMBER_RE.search(text)
+    soldout_icon_match = DKC_SOLDOUT_ICON_RE.search(text)
+    json_stock_matches = DKC_STOCK_JSON_RE.findall(text)
+
+    stock_number = int(stock_match.group(1)) if stock_match else None
+    soldout_icon = soldout_icon_match.group(1) if soldout_icon_match else None
+    json_stocks = [int(v) for v in json_stock_matches]
+    max_json_stock = max(json_stocks) if json_stocks else None
+
+    detail = (
+        f"stock_number={stock_number}, is_soldout_icon={soldout_icon}, "
+        f"json_stock_max={max_json_stock}"
+    )
+
+    if (stock_number is not None and stock_number > 0) or (
+        max_json_stock is not None and max_json_stock > 0
+    ):
+        return CheckResult(url, name, "BUYABLE", detail)
+
+    if soldout_icon == "T" or stock_number == 0 or max_json_stock == 0:
+        return CheckResult(url, name, "SOLD_OUT", detail)
+
+    return CheckResult(url, name, "UNKNOWN", detail)
+
+
+def check_product(url: str) -> CheckResult:
+    if "compuzone.co.kr" in url:
+        return check_compuzone(url)
+    if "dkc.kr" in url:
+        return check_dkc(url)
+    return check_plthink(url)
 
 
 def is_network_error_exception(exc: Exception) -> bool:
@@ -360,14 +510,14 @@ def send_notification(
 
 def print_result(index: int, total: int, result: CheckResult) -> None:
     label = {
-        "BUYABLE": "구매가능",
-        "SOLD_OUT": "품절",
+        "BUYABLE": "구매가능❤️",
+        "SOLD_OUT": "품절🥲",
         "UNKNOWN": "확인필요",
         "NETWORK_ERROR": "네트워크오류",
         "RATE_LIMITED": "차단대기",
         "SKIPPED": "건너뜀",
     }.get(result.status, result.status)
-    print(f"  [{index}/{total}] [유쾌한생각] {label} {result.name} | {result.detail}", flush=True)
+    print(f"  [{index}/{total}] [{site_label(result.url)}] {label} {result.name} | {result.detail}", flush=True)
 
 
 def main() -> None:
@@ -436,7 +586,7 @@ def main() -> None:
                 wait_seconds = max(backoff_seconds, retry_seconds) + random.randint(30, 120)
                 backoff_until = dt.datetime.now() + dt.timedelta(seconds=wait_seconds)
                 print(
-                    f"  [유쾌한생각] 429 감지: {format_duration(wait_seconds)} 동안 요청을 건너뜁니다.",
+                    f"  [{site_label(url)}] 429 감지: {format_duration(wait_seconds)} 동안 요청을 건너뜁니다.",
                     flush=True,
                 )
                 continue
@@ -461,8 +611,8 @@ def main() -> None:
 
         for result in buyable_results:
             send_notification(
-                "유쾌한생각 리코 재고 풀림 감지!",
-                f"{result.name} 구매 가능 신호: {result.detail}",
+                f"{site_label(result.url)} 리코 재고 풀림 감지!",
+                f"[{site_label(result.url)}] {result.name} 구매 가능 신호: {result.detail}",
                 result.url,
                 open_url=args.open,
                 sound_repeats=args.sound_repeats,

@@ -27,11 +27,11 @@ MACOS_SOUND_NAME = "Glass"
 MACOS_SOUND_FILE = f"/System/Library/Sounds/{MACOS_SOUND_NAME}.aiff"
 
 PRODUCT_URLS = [
-    "https://brand.naver.com/canonkorea/products/13104822623",
-    "https://brand.naver.com/canonkorea/products/13104765036",
+    # "https://brand.naver.com/canonkorea/products/13104822623",
+    # "https://brand.naver.com/canonkorea/products/13104765036",
     "https://store.sony.co.kr/product-view/102263765",
-    "https://estore.kr.canon/estore/detailview/41801",
-    "https://estore.kr.canon/estore/detailview/41803",
+    # "https://estore.kr.canon/estore/detailview/41801",
+    # "https://estore.kr.canon/estore/detailview/41803",
 ]
 
 COMMON_HEADERS = {
