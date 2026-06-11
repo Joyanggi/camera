@@ -201,25 +201,47 @@ function playAlertChime() {
   if (!ctx) return;
   try {
     const now = ctx.currentTime;
-    // 두 음 차임: 도(1046Hz) → 솔(1568Hz)
-    [
-      { freq: 1046.5, start: 0,    dur: 0.22, gain: 0.18 },
-      { freq: 1568.0, start: 0.18, dur: 0.32, gain: 0.18 },
-    ].forEach(({ freq, start, dur, gain }) => {
-      const osc = ctx.createOscillator();
-      const g = ctx.createGain();
-      osc.type = "sine";
-      osc.frequency.value = freq;
-      g.gain.setValueAtTime(0, now + start);
-      g.gain.linearRampToValueAtTime(gain, now + start + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001, now + start + dur);
-      osc.connect(g).connect(ctx.destination);
-      osc.start(now + start);
-      osc.stop(now + start + dur + 0.02);
+    const PEAK = 0.32;
+
+    // C6-E6-G6-C7 (도-미-솔-도) 상행 아르페지오를 0.3초 간격으로 두 번 반복
+    // 총 길이 ~1.8초. 음 하나당 사인파 + 한 옥타브 위 사인파 살짝 섞어 더 또렷하게
+    const notes = [
+      1046.5, // C6
+      1318.5, // E6
+      1568.0, // G6
+      2093.0, // C7
+    ];
+    const noteDur = 0.16;
+    const noteGap = 0.04;
+    const repeatGap = 0.3;
+
+    [0, 1].forEach((cycle) => {
+      const cycleStart = cycle * (notes.length * (noteDur + noteGap) + repeatGap);
+      notes.forEach((freq, idx) => {
+        const start = cycleStart + idx * (noteDur + noteGap);
+        // 메인 사인파
+        playTone(ctx, freq, "sine", start, noteDur, PEAK, now);
+        // 한 옥타브 위 사인파 가볍게 (밝기 추가)
+        playTone(ctx, freq * 2, "sine", start, noteDur, PEAK * 0.18, now);
+      });
     });
   } catch (err) {
     console.error("audio error", err);
   }
+}
+
+function playTone(ctx, freq, type, startOffset, dur, peak, baseTime) {
+  const osc = ctx.createOscillator();
+  const g = ctx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  const t0 = baseTime + startOffset;
+  g.gain.setValueAtTime(0, t0);
+  g.gain.linearRampToValueAtTime(peak, t0 + 0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  osc.connect(g).connect(ctx.destination);
+  osc.start(t0);
+  osc.stop(t0 + dur + 0.02);
 }
 
 function fireNotification(product) {
