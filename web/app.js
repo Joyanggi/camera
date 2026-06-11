@@ -101,11 +101,15 @@ function renderCards(products) {
   });
   wrap.innerHTML = sorted.map((p) => {
     const meta = statusMeta(p.status);
+    const staleBadge = p.stale
+      ? `<span class="status-pill warning" title="네트워크 일시 오류, 이전 상태 유지">stale</span>`
+      : "";
     return `
-      <a class="card ${meta.klass}" href="${escapeHtml(p.url)}" target="_blank" rel="noopener">
+      <a class="card ${meta.klass}${p.stale ? " stale" : ""}" href="${escapeHtml(p.url)}" target="_blank" rel="noopener">
         <div class="card-head">
           <span class="badge">${escapeHtml(p.site)}</span>
           <span class="status-pill ${meta.klass}">${escapeHtml(meta.label)}</span>
+          ${staleBadge}
         </div>
         <h2 class="card-name">${escapeHtml(p.name)}</h2>
         <div class="card-detail">${escapeHtml(p.detail || "")}</div>

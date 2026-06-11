@@ -178,6 +178,9 @@ body.has-buyable .topbar h1::after {
 }
 .card.buyable .card-name { color: #d4f5e3; }
 
+.card.stale { opacity: 0.7; }
+.card.stale .status-pill.warning { font-size: 10px; }
+
 .card-head {
   display: flex;
   align-items: center;

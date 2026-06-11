@@ -175,6 +175,40 @@ def previous_status_by_url(previous: Dict[str, Any]) -> Dict[str, str]:
     return out
 
 
+def previous_full_by_url(previous: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
+    out: Dict[str, Dict[str, Any]] = {}
+    for item in previous.get("products", []):
+        url = item.get("url")
+        if url:
+            out[url] = item
+    return out
+
+
+def carry_forward_transient(results: List[Dict[str, Any]], previous: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """현재가 NETWORK_ERROR/ERROR고 이전이 BUYABLE/SOLD_OUT/UNKNOWN였으면 이전 값을 들고 가고
+    detail에 stale 마커를 붙임. 전환 감지에 영향 없도록 'last_good_status'도 별도 보존."""
+    prev_full = previous_full_by_url(previous)
+    prev_checked_at = previous.get("checked_at")
+    out = []
+    for item in results:
+        url = item.get("url")
+        if item.get("status") in {"NETWORK_ERROR", "ERROR"} and url in prev_full:
+            prev = prev_full[url]
+            prev_status = prev.get("status")
+            if prev_status in {"BUYABLE", "SOLD_OUT", "UNKNOWN"}:
+                merged = dict(prev)
+                merged["detail"] = (
+                    f"{prev.get('detail', '')} (stale: {item.get('detail', '')}, "
+                    f"last good {prev_checked_at})"
+                )
+                merged["stale"] = True
+                merged["stale_reason"] = item.get("detail", "")
+                out.append(merged)
+                continue
+        out.append(item)
+    return out
+
+
 def send_slack(text: str) -> None:
     webhook = os.environ.get("SLACK_WEBHOOK_URL")
     if not webhook:
@@ -215,10 +249,12 @@ def main() -> int:
     previous = load_previous()
     previous_status = previous_status_by_url(previous)
 
-    results = run_all_checks()
+    raw_results = run_all_checks()
+    results = carry_forward_transient(raw_results, previous)
 
     for item in results:
-        print(f"  [{item['site']}] {item['status']} {item['name']} | {item['detail']}", flush=True)
+        marker = " (stale)" if item.get("stale") else ""
+        print(f"  [{item['site']}] {item['status']}{marker} {item['name']} | {item['detail']}", flush=True)
 
     transitions = detect_transitions(previous_status, results)
     for item in transitions:

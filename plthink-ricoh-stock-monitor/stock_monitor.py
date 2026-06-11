@@ -284,7 +284,8 @@ def compuzone_product_name(text: str, fallback: str) -> str:
 
 def check_compuzone(url: str) -> CheckResult:
     fetch_url = mobile_compuzone_url(url)
-    resp = requests.get(fetch_url, headers=COMPUZONE_MOBILE_HEADERS, timeout=15)
+    # GitHub Actions IP 차단으로 connect timeout이 잦아 8/12로 빨리 실패하도록
+    resp = requests.get(fetch_url, headers=COMPUZONE_MOBILE_HEADERS, timeout=(8, 12))
     fallback = fallback_name(url)
 
     if resp.status_code == 429:
