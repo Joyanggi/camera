@@ -181,7 +181,49 @@ async function requestNotifPermission() {
   updateNotifBtn();
 }
 
+let audioCtx = null;
+function ensureAudioCtx() {
+  if (!audioCtx) {
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    } catch {
+      return null;
+    }
+  }
+  if (audioCtx.state === "suspended") {
+    audioCtx.resume().catch(() => {});
+  }
+  return audioCtx;
+}
+
+function playAlertChime() {
+  const ctx = ensureAudioCtx();
+  if (!ctx) return;
+  try {
+    const now = ctx.currentTime;
+    // 두 음 차임: 도(1046Hz) → 솔(1568Hz)
+    [
+      { freq: 1046.5, start: 0,    dur: 0.22, gain: 0.18 },
+      { freq: 1568.0, start: 0.18, dur: 0.32, gain: 0.18 },
+    ].forEach(({ freq, start, dur, gain }) => {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      g.gain.setValueAtTime(0, now + start);
+      g.gain.linearRampToValueAtTime(gain, now + start + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + start + dur);
+      osc.connect(g).connect(ctx.destination);
+      osc.start(now + start);
+      osc.stop(now + start + dur + 0.02);
+    });
+  } catch (err) {
+    console.error("audio error", err);
+  }
+}
+
 function fireNotification(product) {
+  playAlertChime();
   if (!notifySupported() || Notification.permission !== "granted") return;
   try {
     const n = new Notification(`📸 재고 풀림: ${product.site}`, {
@@ -272,9 +314,23 @@ function runTest() {
   }, TEST_DURATION_MS);
 }
 
-document.getElementById("refreshBtn").addEventListener("click", refresh);
-document.getElementById("notifBtn").addEventListener("click", requestNotifPermission);
-document.getElementById("testBtn").addEventListener("click", runTest);
+// 첫 user gesture 때 AudioContext 활성화 (브라우저 정책상 필수)
+function warmUpAudio() {
+  ensureAudioCtx();
+}
+
+document.getElementById("refreshBtn").addEventListener("click", () => {
+  warmUpAudio();
+  refresh();
+});
+document.getElementById("notifBtn").addEventListener("click", () => {
+  warmUpAudio();
+  requestNotifPermission();
+});
+document.getElementById("testBtn").addEventListener("click", () => {
+  warmUpAudio();
+  runTest();
+});
 updateNotifBtn();
 refresh();
 setInterval(refresh, REFRESH_INTERVAL_MS);
