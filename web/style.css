@@ -160,8 +160,23 @@ body.has-buyable .topbar h1::after {
   border-color: #3a4150;
 }
 
-.card.buyable { border-color: rgba(43, 182, 115, 0.45); }
-.card.buyable:hover { border-color: var(--buyable); }
+.card.buyable {
+  border-color: rgba(43, 182, 115, 0.55);
+  background:
+    linear-gradient(180deg, rgba(43, 182, 115, 0.16), rgba(43, 182, 115, 0.06) 60%, rgba(43, 182, 115, 0.03)),
+    var(--surface);
+  box-shadow: 0 0 0 1px rgba(43, 182, 115, 0.18), 0 6px 24px -12px rgba(43, 182, 115, 0.4);
+}
+.card.buyable:hover {
+  border-color: var(--buyable);
+  box-shadow: 0 0 0 1px rgba(43, 182, 115, 0.35), 0 10px 30px -10px rgba(43, 182, 115, 0.55);
+}
+.card.buyable .badge {
+  background: rgba(43, 182, 115, 0.18);
+  border-color: rgba(43, 182, 115, 0.4);
+  color: var(--buyable);
+}
+.card.buyable .card-name { color: #d4f5e3; }
 
 .card-head {
   display: flex;

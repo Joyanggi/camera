@@ -208,6 +208,7 @@ async function refresh() {
   try {
     const data = await fetchStatus();
     const products = data.products || [];
+    lastProducts = products;
 
     document.getElementById("checkedAt").textContent =
       `마지막 확인: ${formatKST(data.checked_at)}`;
@@ -234,18 +235,26 @@ async function refresh() {
 
 const TEST_DURATION_MS = 10 * 1000;
 let testTimer = null;
+let lastProducts = [];
+
+const FAKE_PRODUCT = {
+  site: "테스트",
+  name: "🧪 테스트용 카메라 (실제 상품 아님)",
+  url: "#test",
+  status: "BUYABLE",
+  detail: "테스트 모드: 카드 배경 + 알림 + 상단 테마 미리보기",
+};
 
 function runTest() {
   const btn = document.getElementById("testBtn");
 
-  fireNotification({
-    site: "테스트",
-    name: "📸 알림 테스트 (실제 재고 아님)",
-    detail: "이 알림이 보이면 브라우저 알림 정상 동작",
-    url: location.href,
-  });
+  fireNotification(FAKE_PRODUCT);
 
+  const augmented = [FAKE_PRODUCT, ...lastProducts];
+  renderSummary(augmented);
+  renderCards(augmented);
   applyBuyableTheme(true);
+
   if (btn) {
     btn.textContent = "🧪 테스트 중...";
     btn.disabled = true;
