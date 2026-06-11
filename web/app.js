@@ -232,8 +232,39 @@ async function refresh() {
   }
 }
 
+const TEST_DURATION_MS = 10 * 1000;
+let testTimer = null;
+
+function runTest() {
+  const btn = document.getElementById("testBtn");
+
+  fireNotification({
+    site: "테스트",
+    name: "📸 알림 테스트 (실제 재고 아님)",
+    detail: "이 알림이 보이면 브라우저 알림 정상 동작",
+    url: location.href,
+  });
+
+  applyBuyableTheme(true);
+  if (btn) {
+    btn.textContent = "🧪 테스트 중...";
+    btn.disabled = true;
+  }
+
+  if (testTimer) clearTimeout(testTimer);
+  testTimer = setTimeout(() => {
+    refresh();
+    if (btn) {
+      btn.textContent = "🧪 테스트";
+      btn.disabled = false;
+    }
+    testTimer = null;
+  }, TEST_DURATION_MS);
+}
+
 document.getElementById("refreshBtn").addEventListener("click", refresh);
 document.getElementById("notifBtn").addEventListener("click", requestNotifPermission);
+document.getElementById("testBtn").addEventListener("click", runTest);
 updateNotifBtn();
 refresh();
 setInterval(refresh, REFRESH_INTERVAL_MS);
