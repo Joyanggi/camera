@@ -68,14 +68,71 @@ def normalize_result(url: str, result, source: str) -> Dict[str, Any]:
     }
 
 
-def safe_run(label: str, fn, *args) -> Dict[str, Any]:
+NETWORK_ERROR_MARKERS = (
+    "nameresolutionerror",
+    "failed to resolve",
+    "connecttimeout",
+    "read timed out",
+    "connection timed out",
+    "newconnectionerror",
+    "failed to establish a new connection",
+    "max retries exceeded",
+    "temporary failure in name resolution",
+)
+
+
+def is_transient_network_error(exc: Exception) -> bool:
+    if isinstance(exc, (requests.exceptions.ConnectionError, requests.exceptions.Timeout)):
+        return True
+    text = f"{type(exc).__name__}: {exc}".lower()
+    return any(marker in text for marker in NETWORK_ERROR_MARKERS)
+
+
+def short_network_detail(exc: Exception) -> str:
+    text = str(exc)
+    if "Failed to resolve" in text or "NameResolutionError" in text or "Temporary failure in name resolution" in text:
+        return "DNS 조회 실패 (러너 일시 장애 가능)"
+    if "ConnectTimeout" in type(exc).__name__ or "timed out" in text.lower():
+        return "연결 타임아웃 (사이트 응답 지연 또는 IP 차단 가능)"
+    if "ConnectionError" in type(exc).__name__:
+        return "연결 실패"
+    return f"{type(exc).__name__}"
+
+
+def run_with_retry(fn, *args, retries: int = 1, retry_delay: float = 2.0):
+    """일시 네트워크 오류면 retries 회 재시도. 그래도 실패하면 마지막 예외 그대로 raise."""
+    last_exc: Optional[Exception] = None
+    for attempt in range(retries + 1):
+        try:
+            return fn(*args)
+        except Exception as exc:
+            last_exc = exc
+            if attempt < retries and is_transient_network_error(exc):
+                time.sleep(retry_delay)
+                continue
+            raise
+    if last_exc:
+        raise last_exc
+
+
+def call_with_fallback(source: str, url: str, fallback_name: str, fn, *args) -> Dict[str, Any]:
     try:
-        return fn(*args)
+        result = run_with_retry(fn, *args)
+        return normalize_result(url, result, source)
     except Exception as exc:
+        if is_transient_network_error(exc):
+            status = "NETWORK_ERROR"
+            detail = short_network_detail(exc)
+        else:
+            status = "ERROR"
+            detail = f"{type(exc).__name__}: {str(exc)[:200]}"
         return {
-            "status": "ERROR",
-            "name": label,
-            "detail": f"{type(exc).__name__}: {exc}",
+            "site": site_label(url),
+            "source_module": source,
+            "url": url,
+            "name": fallback_name,
+            "status": status,
+            "detail": detail,
         }
 
 
@@ -83,47 +140,16 @@ def run_all_checks() -> List[Dict[str, Any]]:
     results: List[Dict[str, Any]] = []
 
     for url in mac.PRODUCT_URLS:
-        try:
-            result = mac.check_product(url)
-            results.append(normalize_result(url, result, "mac"))
-        except Exception as exc:
-            results.append({
-                "site": site_label(url),
-                "source_module": "mac",
-                "url": url,
-                "name": url,
-                "status": "ERROR",
-                "detail": f"{type(exc).__name__}: {exc}",
-            })
+        results.append(call_with_fallback("mac", url, url, mac.check_product, url))
         time.sleep(1.0)
 
-    try:
-        saeki_result = saeki.check_product()
-        results.append(normalize_result(saeki.PRODUCT_URL, saeki_result, "saeki"))
-    except Exception as exc:
-        results.append({
-            "site": site_label(saeki.PRODUCT_URL),
-            "source_module": "saeki",
-            "url": saeki.PRODUCT_URL,
-            "name": "RICOH GR IV (세기몰)",
-            "status": "ERROR",
-            "detail": f"{type(exc).__name__}: {exc}",
-        })
+    results.append(call_with_fallback(
+        "saeki", saeki.PRODUCT_URL, "RICOH GR IV (세기몰)", saeki.check_product,
+    ))
     time.sleep(1.0)
 
     for url in plthink.PRODUCT_URLS:
-        try:
-            result = plthink.check_product(url)
-            results.append(normalize_result(url, result, "plthink"))
-        except Exception as exc:
-            results.append({
-                "site": site_label(url),
-                "source_module": "plthink",
-                "url": url,
-                "name": url,
-                "status": "ERROR",
-                "detail": f"{type(exc).__name__}: {exc}",
-            })
+        results.append(call_with_fallback("plthink", url, url, plthink.check_product, url))
         time.sleep(1.0)
 
     return results

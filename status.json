@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-06-11T14:47:17.849202+09:00",
+  "checked_at": "2026-06-11T14:52:35.470463+09:00",
   "products": [
     {
       "site": "소니공홈",
@@ -21,9 +21,9 @@
       "site": "유쾌한생각",
       "source_module": "plthink",
       "url": "https://www.plthink.com/shop/shopdetail.html?branduid=1927702&search=%B8%AE%C4%DA&sort=sellcnt&xcode=008&mcode=114&scode=001&GfDT=Z253U1o%3D",
-      "name": "https://www.plthink.com/shop/shopdetail.html?branduid=1927702&search=%B8%AE%C4%DA&sort=sellcnt&xcode=008&mcode=114&scode=001&GfDT=Z253U1o%3D",
-      "status": "ERROR",
-      "detail": "ConnectionError: HTTPSConnectionPool(host='www.plthink.com', port=443): Max retries exceeded with url: /shop/shopdetail.html?branduid=1927702&search=%B8%AE%C4%DA&sort=sellcnt&xcode=008&mcode=114&scode=001&GfDT=Z253U1o%3D (Caused by NameResolutionError(\"HTTPSConnection(host='www.plthink.com', port=443): Failed to resolve 'www.plthink.com' ([Errno -3] Temporary failure in name resolution)\"))"
+      "name": "유쾌한생각 - [RICOH] 리코 GR IV GR4 카메라 하이엔드 컴팩트",
+      "status": "SOLD_OUT",
+      "detail": "ENP_VAR.soldOut=Y, sto_state NORMAL=0/SOLDOUT=1"
     },
     {
       "site": "유쾌한생각",
@@ -53,9 +53,9 @@
       "site": "컴퓨존",
       "source_module": "plthink",
       "url": "https://www.compuzone.co.kr/product/product_detail.htm?ProductNo=1293383",
-      "name": "https://www.compuzone.co.kr/product/product_detail.htm?ProductNo=1293383",
-      "status": "ERROR",
-      "detail": "ConnectTimeout: HTTPSConnectionPool(host='m.compuzone.co.kr', port=443): Max retries exceeded with url: /product/product_detail.htm?ProductNo=1293383 (Caused by ConnectTimeoutError(<HTTPSConnection(host='m.compuzone.co.kr', port=443) at 0x7fa6c4ff8390>, 'Connection to m.compuzone.co.kr timed out. (connect timeout=15)'))"
+      "name": "[RICOH] 리코 GR IV (GR4) [세기P&C 정품]",
+      "status": "SOLD_OUT",
+      "detail": "pr_stock=Y hits=1"
     },
     {
       "site": "DKC",
