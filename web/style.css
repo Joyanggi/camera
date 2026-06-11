@@ -26,6 +26,22 @@ html, body {
   background: var(--bg);
   color: var(--text);
   line-height: 1.5;
+  transition: background 0.6s ease;
+}
+
+/* 구매 가능 상품이 하나라도 있으면 페이지 전체 배경에 은은한 그린 톤 */
+body.has-buyable {
+  background:
+    radial-gradient(1200px 600px at 50% -10%, rgba(43, 182, 115, 0.18), transparent 60%),
+    var(--bg);
+}
+body.has-buyable .topbar {
+  background: rgba(15, 30, 22, 0.88);
+}
+body.has-buyable .topbar h1::after {
+  content: " · 재고 발견!";
+  color: var(--buyable);
+  font-weight: 600;
 }
 
 .topbar {
@@ -75,6 +91,12 @@ html, body {
 }
 .refresh-btn:hover { background: #262b36; }
 .refresh-btn:active { transform: translateY(1px); }
+.refresh-btn:disabled { cursor: default; opacity: 0.85; }
+.refresh-btn.on {
+  background: rgba(43, 182, 115, 0.18);
+  border-color: rgba(43, 182, 115, 0.5);
+  color: var(--buyable);
+}
 
 .container {
   max-width: 1080px;

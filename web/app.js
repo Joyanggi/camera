@@ -2,6 +2,7 @@ const STATUS_URL_REMOTE =
   "https://raw.githubusercontent.com/Joyanggi/camera/main/status.json";
 const STATUS_URL_LOCAL = "../status.json";
 const REFRESH_INTERVAL_MS = 60 * 1000;
+const PREV_STATUS_KEY = "prev_status_v1";
 
 const STATUS_META = {
   BUYABLE:       { label: "구매 가능", klass: "buyable" },
@@ -78,6 +79,7 @@ function renderSummary(products) {
       <div class="value">${counts.error}</div>
     </div>
   `;
+  return counts;
 }
 
 function escapeHtml(s) {
@@ -111,13 +113,117 @@ function renderCards(products) {
   }).join("");
 }
 
+function loadPrevStatus() {
+  try {
+    const raw = localStorage.getItem(PREV_STATUS_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function savePrevStatus(map) {
+  try {
+    localStorage.setItem(PREV_STATUS_KEY, JSON.stringify(map));
+  } catch {}
+}
+
+function buildStatusMap(products) {
+  const map = {};
+  for (const p of products) {
+    if (p.url) map[p.url] = p.status;
+  }
+  return map;
+}
+
+function detectNewBuyables(products, prevMap) {
+  if (!prevMap) return [];
+  const fresh = [];
+  for (const p of products) {
+    if (p.status !== "BUYABLE") continue;
+    if (prevMap[p.url] !== "BUYABLE") fresh.push(p);
+  }
+  return fresh;
+}
+
+function notifySupported() {
+  return "Notification" in window;
+}
+
+function updateNotifBtn() {
+  const btn = document.getElementById("notifBtn");
+  if (!btn) return;
+  if (!notifySupported()) {
+    btn.textContent = "알림 미지원";
+    btn.disabled = true;
+    return;
+  }
+  const perm = Notification.permission;
+  if (perm === "granted") {
+    btn.textContent = "🔔 알림 켜짐";
+    btn.classList.add("on");
+    btn.disabled = true;
+  } else if (perm === "denied") {
+    btn.textContent = "🔕 알림 차단됨";
+    btn.disabled = true;
+  } else {
+    btn.textContent = "🔔 알림 허용";
+    btn.disabled = false;
+  }
+}
+
+async function requestNotifPermission() {
+  if (!notifySupported()) return;
+  try {
+    await Notification.requestPermission();
+  } catch {}
+  updateNotifBtn();
+}
+
+function fireNotification(product) {
+  if (!notifySupported() || Notification.permission !== "granted") return;
+  try {
+    const n = new Notification(`📸 재고 풀림: ${product.site}`, {
+      body: `${product.name}\n${product.detail || ""}`,
+      tag: product.url,
+      renotify: true,
+    });
+    n.onclick = () => {
+      window.focus();
+      window.open(product.url, "_blank", "noopener");
+      n.close();
+    };
+  } catch (err) {
+    console.error("notification error", err);
+  }
+}
+
+function applyBuyableTheme(hasBuyable) {
+  document.body.classList.toggle("has-buyable", hasBuyable);
+}
+
+let firstLoad = true;
+
 async function refresh() {
   try {
     const data = await fetchStatus();
+    const products = data.products || [];
+
     document.getElementById("checkedAt").textContent =
       `마지막 확인: ${formatKST(data.checked_at)}`;
-    renderSummary(data.products || []);
-    renderCards(data.products || []);
+    const counts = renderSummary(products);
+    renderCards(products);
+    applyBuyableTheme(counts.buyable > 0);
+
+    const prevMap = loadPrevStatus();
+    const currMap = buildStatusMap(products);
+
+    if (!firstLoad) {
+      const fresh = detectNewBuyables(products, prevMap);
+      for (const p of fresh) fireNotification(p);
+    }
+    savePrevStatus(currMap);
+    firstLoad = false;
   } catch (err) {
     document.getElementById("checkedAt").textContent = "상태를 불러오지 못했습니다";
     document.getElementById("cards").innerHTML =
@@ -127,5 +233,7 @@ async function refresh() {
 }
 
 document.getElementById("refreshBtn").addEventListener("click", refresh);
+document.getElementById("notifBtn").addEventListener("click", requestNotifPermission);
+updateNotifBtn();
 refresh();
 setInterval(refresh, REFRESH_INTERVAL_MS);
