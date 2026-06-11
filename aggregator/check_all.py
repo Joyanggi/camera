@@ -202,6 +202,16 @@ def detect_transitions(previous: Dict[str, str], current: List[Dict[str, Any]]) 
 def main() -> int:
     print(f"[{dt.datetime.now().isoformat()}] check_all 시작", flush=True)
 
+    if os.environ.get("TEST_SLACK", "").lower() in {"true", "1", "yes"}:
+        now_str = dt.datetime.now(dt.timezone(dt.timedelta(hours=9))).isoformat()
+        text = (
+            "[🧪 슬랙 테스트] 이 메시지가 보이면 GitHub Actions → Slack 웹훅 경로가 정상 동작합니다.\n"
+            f"시간: {now_str}"
+        )
+        send_slack(text)
+        print(f"[{now_str}] TEST_SLACK 모드: 테스트 메시지 전송 후 종료", flush=True)
+        return 0
+
     previous = load_previous()
     previous_status = previous_status_by_url(previous)
 
