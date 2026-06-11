@@ -1,0 +1,69 @@
+{
+  "checked_at": "2026-06-11T14:28:10.660553+09:00",
+  "products": [
+    {
+      "site": "소니공홈",
+      "source_module": "mac",
+      "url": "https://store.sony.co.kr/product-view/102263765",
+      "name": "DSC-RX100M7",
+      "status": "BUYABLE",
+      "detail": "saleStatusType=ONSALE, soldout=False, stock=-999"
+    },
+    {
+      "site": "세기몰",
+      "source_module": "saeki",
+      "url": "https://www.saeki.co.kr/item/itemDetail?itemId=PD00041564",
+      "name": "RICOH GR IV",
+      "status": "SOLD_OUT",
+      "detail": "schema=https://schema.org/OutOfStock, product=out of stock, recopick=oos, saleStatus=PD004030, noticeButton=Y"
+    },
+    {
+      "site": "유쾌한생각",
+      "source_module": "plthink",
+      "url": "https://www.plthink.com/shop/shopdetail.html?branduid=1927702&search=%B8%AE%C4%DA&sort=sellcnt&xcode=008&mcode=114&scode=001&GfDT=Z253U1o%3D",
+      "name": "유쾌한생각 - [RICOH] 리코 GR IV GR4 카메라 하이엔드 컴팩트",
+      "status": "SOLD_OUT",
+      "detail": "ENP_VAR.soldOut=Y, sto_state NORMAL=0/SOLDOUT=1"
+    },
+    {
+      "site": "유쾌한생각",
+      "source_module": "plthink",
+      "url": "https://www.plthink.com/shop/shopdetail.html?branduid=1926543&search=%B8%AE%C4%DA&sort=sellcnt&xcode=008&mcode=114&scode=001&GfDT=bm5%2BW15D",
+      "name": "유쾌한생각 - [RICOH] 리코 GR III GR3 스트리트 에디션 Street 컴팩트 카메라",
+      "status": "SOLD_OUT",
+      "detail": "ENP_VAR.soldOut=Y, sto_state NORMAL=0/SOLDOUT=1"
+    },
+    {
+      "site": "유쾌한생각",
+      "source_module": "plthink",
+      "url": "https://www.plthink.com/shop/shopdetail.html?branduid=1926544&search=%B8%AE%C4%DA&sort=sellcnt&xcode=008&mcode=114&scode=001&GfDT=aml3U1U%3D",
+      "name": "유쾌한생각 - [RICOH] 리코 GR III GR3 다이어리 에디션 Diary 컴팩트 카메라",
+      "status": "SOLD_OUT",
+      "detail": "ENP_VAR.soldOut=Y, sto_state NORMAL=0/SOLDOUT=1"
+    },
+    {
+      "site": "유쾌한생각",
+      "source_module": "plthink",
+      "url": "https://www.plthink.com/shop/shopdetail.html?branduid=1929763&search=%B8%AE%C4%DA&sort=sellcnt&xcode=008&mcode=114&scode=001&GfDT=a253Ulw%3D",
+      "name": "유쾌한생각 - [RICOH] 리코 GR IV GR4 카메라 외장 플래시 세트",
+      "status": "SOLD_OUT",
+      "detail": "ENP_VAR.soldOut=Y, sto_state NORMAL=0/SOLDOUT=1"
+    },
+    {
+      "site": "컴퓨존",
+      "source_module": "plthink",
+      "url": "https://www.compuzone.co.kr/product/product_detail.htm?ProductNo=1293383",
+      "name": "[RICOH] 리코 GR IV (GR4) [세기P&C 정품]",
+      "status": "SOLD_OUT",
+      "detail": "pr_stock=Y hits=1"
+    },
+    {
+      "site": "DKC",
+      "source_module": "plthink",
+      "url": "https://dkc.kr/product/%EB%A6%AC%EC%BD%94-gr4-gr-iv/762/category/76/display/1/",
+      "name": "리코 GR4 / GR IV",
+      "status": "SOLD_OUT",
+      "detail": "stock_number=0, is_soldout_icon=T, json_stock_max=None"
+    }
+  ]
+}

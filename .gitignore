@@ -1,6 +1,13 @@
 .env
+.DS_Store
 .stock_monitor_env
 stock_monitor_state.json
 stock_monitor_live.log
+saeki_monitor_state.json
+saeki_monitor_live.log
+plthink_monitor_state.json
+plthink_monitor_live.log
 __pycache__/
 *.pyc
+node_modules/
+.vercel

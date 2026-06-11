@@ -1,0 +1,208 @@
+:root {
+  --bg: #0f1115;
+  --surface: #181b22;
+  --surface-2: #1f232c;
+  --border: #2a2f3a;
+  --text: #e6e8ee;
+  --text-dim: #9aa1b1;
+  --accent: #5b8def;
+  --buyable: #2bb673;
+  --buyable-bg: rgba(43, 182, 115, 0.12);
+  --soldout: #8a93a6;
+  --soldout-bg: rgba(138, 147, 166, 0.12);
+  --warning: #e8a93a;
+  --warning-bg: rgba(232, 169, 58, 0.14);
+  --error: #e25555;
+  --error-bg: rgba(226, 85, 85, 0.14);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(15, 17, 21, 0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.topbar h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-dim);
+  font-size: 13px;
+}
+
+.refresh-btn {
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.refresh-btn:hover { background: #262b36; }
+.refresh-btn:active { transform: translateY(1px); }
+
+.container {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 24px 20px 60px;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.stat .label {
+  font-size: 12px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stat .value {
+  font-size: 24px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.stat.buyable .value { color: var(--buyable); }
+.stat.soldout .value { color: var(--soldout); }
+.stat.warning .value { color: var(--warning); }
+.stat.error .value { color: var(--error); }
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 14px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.12s ease, border-color 0.12s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  border-color: #3a4150;
+}
+
+.card.buyable { border-color: rgba(43, 182, 115, 0.45); }
+.card.buyable:hover { border-color: var(--buyable); }
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.status-pill {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.status-pill.buyable { color: var(--buyable); background: var(--buyable-bg); }
+.status-pill.soldout { color: var(--soldout); background: var(--soldout-bg); }
+.status-pill.warning { color: var(--warning); background: var(--warning-bg); }
+.status-pill.error { color: var(--error); background: var(--error-bg); }
+
+.card-name {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.card-detail {
+  font-size: 12px;
+  color: var(--text-dim);
+  word-break: break-all;
+}
+
+.loading {
+  text-align: center;
+  color: var(--text-dim);
+  padding: 60px 0;
+  grid-column: 1 / -1;
+}
+
+.footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 20px 30px;
+  color: var(--text-dim);
+  font-size: 12px;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .topbar h1 { font-size: 16px; }
+  .stat .value { font-size: 20px; }
+  .card { padding: 14px 16px; }
+}
