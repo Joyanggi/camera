@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-06-11T21:11:07.094244+09:00",
+  "checked_at": "2026-06-11T21:20:46.291744+09:00",
   "products": [
     {
       "site": "소니공홈",
@@ -53,9 +53,9 @@
       "site": "컴퓨존",
       "source_module": "plthink",
       "url": "https://www.compuzone.co.kr/product/product_detail.htm?ProductNo=1293383",
-      "name": "https://www.compuzone.co.kr/product/product_detail.htm?ProductNo=1293383",
-      "status": "NETWORK_ERROR",
-      "detail": "연결 타임아웃 (사이트 응답 지연 또는 IP 차단 가능)"
+      "name": "[RICOH] 리코 GR IV (GR4) [세기P&C 정품]",
+      "status": "SOLD_OUT",
+      "detail": "pr_stock=Y hits=1"
     },
     {
       "site": "DKC",
