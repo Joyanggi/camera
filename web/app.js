@@ -267,9 +267,80 @@ function fireNotification(product) {
   }
 }
 
-function applyBuyableTheme(hasBuyable) {
-  document.body.classList.toggle("has-buyable", hasBuyable);
+const ORIGINAL_TITLE = document.title;
+const FLASH_TITLE = "🚨 재고 발견! 🚨";
+const FLASH_INTERVAL_MS = 1000;
+let flashTimer = null;
+let flashOn = false;
+let currentBuyable = false;
+
+function makeDotFavicon(color) {
+  const c = document.createElement("canvas");
+  c.width = 64; c.height = 64;
+  const ctx = c.getContext("2d");
+  ctx.beginPath();
+  ctx.arc(32, 32, 28, 0, Math.PI * 2);
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = "rgba(255,255,255,0.25)";
+  ctx.stroke();
+  return c.toDataURL("image/png");
 }
+
+const FAVICON_DEFAULT = makeDotFavicon("#5b8def");
+const FAVICON_BUYABLE = makeDotFavicon("#2bb673");
+
+function setFavicon(href) {
+  let link = document.querySelector("link[rel~='icon']");
+  if (!link) {
+    link = document.createElement("link");
+    link.rel = "icon";
+    document.head.appendChild(link);
+  }
+  link.href = href;
+}
+
+function startFlash() {
+  if (flashTimer) return;
+  flashTimer = setInterval(() => {
+    flashOn = !flashOn;
+    document.title = flashOn ? FLASH_TITLE : ORIGINAL_TITLE;
+    setFavicon(flashOn ? FAVICON_BUYABLE : FAVICON_DEFAULT);
+  }, FLASH_INTERVAL_MS);
+}
+
+function stopFlash() {
+  if (flashTimer) {
+    clearInterval(flashTimer);
+    flashTimer = null;
+  }
+  flashOn = false;
+  document.title = ORIGINAL_TITLE;
+  setFavicon(currentBuyable ? FAVICON_BUYABLE : FAVICON_DEFAULT);
+}
+
+function applyBuyableTheme(hasBuyable) {
+  currentBuyable = hasBuyable;
+  document.body.classList.toggle("has-buyable", hasBuyable);
+  // 백그라운드 탭에 재고 있으면 깜빡임 시작, 활성 탭이면 정적 표시
+  if (hasBuyable && document.hidden) {
+    startFlash();
+  } else {
+    stopFlash();
+  }
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden && currentBuyable) {
+    startFlash();
+  } else {
+    stopFlash();
+  }
+});
+
+// 초기 파비콘 설정
+setFavicon(FAVICON_DEFAULT);
 
 let firstLoad = true;
 
