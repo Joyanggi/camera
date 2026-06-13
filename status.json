@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-06-14T05:11:55.061776+09:00",
+  "checked_at": "2026-06-14T05:21:05.663276+09:00",
   "products": [
     {
       "site": "소니공홈",
@@ -15,9 +15,7 @@
       "url": "https://www.saeki.co.kr/item/itemDetail?itemId=PD00041564",
       "name": "RICOH GR IV",
       "status": "SOLD_OUT",
-      "detail": "schema=https://schema.org/OutOfStock, product=out of stock, recopick=oos, saleStatus=PD004030, noticeButton=Y (stale: 연결 타임아웃 (사이트 응답 지연 또는 IP 차단 가능), last good 2026-06-14T05:03:31.426432+09:00)",
-      "stale": true,
-      "stale_reason": "연결 타임아웃 (사이트 응답 지연 또는 IP 차단 가능)"
+      "detail": "schema=https://schema.org/OutOfStock, product=out of stock, recopick=oos, saleStatus=PD004030, noticeButton=Y"
     },
     {
       "site": "유쾌한생각",
@@ -57,7 +55,9 @@
       "url": "https://www.compuzone.co.kr/product/product_detail.htm?ProductNo=1293383",
       "name": "컴퓨존 서비스점검 안내",
       "status": "UNKNOWN",
-      "detail": "pr_stock=Y hits=0, buyBtn=N"
+      "detail": "pr_stock=Y hits=0, buyBtn=N (stale: 연결 타임아웃 (사이트 응답 지연 또는 IP 차단 가능), last good 2026-06-14T05:11:55.061776+09:00)",
+      "stale": true,
+      "stale_reason": "연결 타임아웃 (사이트 응답 지연 또는 IP 차단 가능)"
     },
     {
       "site": "DKC",
