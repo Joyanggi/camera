@@ -43,6 +43,7 @@ SITE_LABEL_BY_URL_PART = [
     ("plthink.com", "유쾌한생각"),
     ("compuzone.co.kr", "컴퓨존"),
     ("dkc.kr", "DKC"),
+    ("asahipentax.co.kr", "한국펜탁스"),
     ("saeki.co.kr", "세기몰"),
     ("store.sony.co.kr", "소니공홈"),
     ("estore.kr.canon", "캐논공홈"),

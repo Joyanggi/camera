@@ -12,7 +12,7 @@ import warnings
 import webbrowser
 from dataclasses import dataclass
 from email.utils import parsedate_to_datetime
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 warnings.filterwarnings("ignore", message="urllib3 v2 only supports OpenSSL.*")
 
@@ -27,6 +27,7 @@ PRODUCT_URLS = [
     "https://www.plthink.com/shop/shopdetail.html?branduid=1929763&search=%B8%AE%C4%DA&sort=sellcnt&xcode=008&mcode=114&scode=001&GfDT=a253Ulw%3D",
     "https://www.compuzone.co.kr/product/product_detail.htm?ProductNo=1293383",
     "https://dkc.kr/product/%EB%A6%AC%EC%BD%94-gr4-gr-iv/762/category/76/display/1/",
+    "https://www.asahipentax.co.kr/product/detail.html?product_no=7580&cate_no=382&display_group=1",
 ]
 
 DEFAULT_INTERVAL_SECONDS = 10
@@ -65,6 +66,8 @@ def site_label(url: str) -> str:
         return "컴퓨존"
     if "dkc.kr" in url:
         return "DKC"
+    if "asahipentax.co.kr" in url:
+        return "한국펜탁스"
     return "기타"
 
 
@@ -76,6 +79,11 @@ DKC_HEADERS = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
     "Referer": "https://dkc.kr/",
+}
+
+ASAHIPENTAX_HEADERS = {
+    **DKC_HEADERS,
+    "Referer": "https://www.asahipentax.co.kr/",
 }
 
 
@@ -312,25 +320,35 @@ def check_compuzone(url: str) -> CheckResult:
     return CheckResult(url, name, "UNKNOWN", detail)
 
 
-DKC_STOCK_NUMBER_RE = re.compile(r"var\s+stock_number\s*=\s*'(\d+)'")
-DKC_SOLDOUT_ICON_RE = re.compile(r"var\s+is_soldout_icon\s*=\s*'([YTNF])'")
-DKC_STOCK_JSON_RE = re.compile(r'"stock_number"\s*:\s*(\d+)')
+CAFE24_STOCK_NUMBER_RE = re.compile(r"var\s+stock_number\s*=\s*'(\d+)'")
+CAFE24_SOLDOUT_ICON_RE = re.compile(r"var\s+is_soldout_icon\s*=\s*'([YTNF])'")
+CAFE24_STOCK_JSON_RE = re.compile(r'"stock_number"\s*:\s*(\d+)')
+CAFE24_PRODUCT_NAME_RE = re.compile(r"var\s+product_name\s*=\s*'([^']+)'")
 
 
-def dkc_product_name(text: str, fallback: str) -> str:
+def cafe24_product_name(text: str, fallback: str, strip_suffix: Optional[str] = None) -> str:
+    # Cafe24 페이지엔 var product_name = '...' 이 거의 항상 존재
+    match = CAFE24_PRODUCT_NAME_RE.search(text)
+    if match:
+        return clean_text(match.group(1)) or fallback
+
     soup = BeautifulSoup(text, "html.parser")
     og_title = soup.select_one('meta[property="og:title"]')
     if og_title and og_title.get("content"):
         name = clean_text(og_title["content"])
-        return re.sub(r"\s*-\s*DKC2?\s*$", "", name).strip() or fallback
+        if strip_suffix:
+            name = re.sub(rf"\s*-\s*{re.escape(strip_suffix)}\s*$", "", name)
+        return name.strip() or fallback
     if soup.title and soup.title.get_text(strip=True):
         title = clean_text(soup.title.get_text(" ", strip=True))
-        return re.sub(r"\s*-\s*DKC2?\s*$", "", title).strip() or fallback
+        if strip_suffix:
+            title = re.sub(rf"\s*-\s*{re.escape(strip_suffix)}\s*$", "", title)
+        return title.strip() or fallback
     return fallback
 
 
-def check_dkc(url: str) -> CheckResult:
-    resp = requests.get(url, headers=DKC_HEADERS, timeout=15)
+def check_cafe24_stock(url: str, headers: Dict[str, str], strip_suffix: Optional[str] = None) -> CheckResult:
+    resp = requests.get(url, headers=headers, timeout=15)
     fallback = fallback_name(url)
 
     if resp.status_code == 429:
@@ -339,11 +357,11 @@ def check_dkc(url: str) -> CheckResult:
         return CheckResult(url, fallback, "UNKNOWN", f"HTTP {resp.status_code}")
 
     text = resp.text
-    name = dkc_product_name(text, fallback)
+    name = cafe24_product_name(text, fallback, strip_suffix)
 
-    stock_match = DKC_STOCK_NUMBER_RE.search(text)
-    soldout_icon_match = DKC_SOLDOUT_ICON_RE.search(text)
-    json_stock_matches = DKC_STOCK_JSON_RE.findall(text)
+    stock_match = CAFE24_STOCK_NUMBER_RE.search(text)
+    soldout_icon_match = CAFE24_SOLDOUT_ICON_RE.search(text)
+    json_stock_matches = CAFE24_STOCK_JSON_RE.findall(text)
 
     stock_number = int(stock_match.group(1)) if stock_match else None
     soldout_icon = soldout_icon_match.group(1) if soldout_icon_match else None
@@ -366,11 +384,21 @@ def check_dkc(url: str) -> CheckResult:
     return CheckResult(url, name, "UNKNOWN", detail)
 
 
+def check_dkc(url: str) -> CheckResult:
+    return check_cafe24_stock(url, DKC_HEADERS, strip_suffix="DKC2")
+
+
+def check_asahipentax(url: str) -> CheckResult:
+    return check_cafe24_stock(url, ASAHIPENTAX_HEADERS, strip_suffix="한국펜탁스카메라")
+
+
 def check_product(url: str) -> CheckResult:
     if "compuzone.co.kr" in url:
         return check_compuzone(url)
     if "dkc.kr" in url:
         return check_dkc(url)
+    if "asahipentax.co.kr" in url:
+        return check_asahipentax(url)
     return check_plthink(url)
 
 
