@@ -186,8 +186,9 @@ def previous_full_by_url(previous: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
 
 
 def carry_forward_transient(results: List[Dict[str, Any]], previous: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """현재가 NETWORK_ERROR/ERROR고 이전이 BUYABLE/SOLD_OUT/UNKNOWN였으면 이전 값을 들고 가고
-    detail에 stale 마커를 붙임. 전환 감지에 영향 없도록 'last_good_status'도 별도 보존."""
+    """현재가 NETWORK_ERROR/ERROR고 이전이 BUYABLE/SOLD_OUT/UNKNOWN였으면 이전 값을 들고 감.
+    연속 실패에도 detail이 누적되지 않도록 원본 detail/시각을 last_good_* 필드에 보존하고
+    매번 그것만 사용해 표시 문구를 재생성한다."""
     prev_full = previous_full_by_url(previous)
     prev_checked_at = previous.get("checked_at")
     out = []
@@ -198,12 +199,20 @@ def carry_forward_transient(results: List[Dict[str, Any]], previous: Dict[str, A
             prev_status = prev.get("status")
             if prev_status in {"BUYABLE", "SOLD_OUT", "UNKNOWN"}:
                 merged = dict(prev)
-                merged["detail"] = (
-                    f"{prev.get('detail', '')} (stale: {item.get('detail', '')}, "
-                    f"last good {prev_checked_at})"
-                )
+                # 이전 항목이 이미 stale이면 원본 정보를 그대로 승계, 아니면 현재 prev가 원본
+                if prev.get("stale"):
+                    last_good_detail = prev.get("last_good_detail", "")
+                    last_good_at = prev.get("last_good_checked_at", prev_checked_at)
+                else:
+                    last_good_detail = prev.get("detail", "")
+                    last_good_at = prev_checked_at
+                merged["last_good_detail"] = last_good_detail
+                merged["last_good_checked_at"] = last_good_at
                 merged["stale"] = True
                 merged["stale_reason"] = item.get("detail", "")
+                merged["detail"] = (
+                    f"{last_good_detail} (stale since {last_good_at}: {item.get('detail', '')})"
+                )
                 out.append(merged)
                 continue
         out.append(item)
