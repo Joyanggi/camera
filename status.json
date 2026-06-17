@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-06-17T09:51:06.254675+09:00",
+  "checked_at": "2026-06-17T10:01:55.007006+09:00",
   "products": [
     {
       "site": "소니공홈",
@@ -55,7 +55,7 @@
       "url": "https://www.compuzone.co.kr/product/product_detail.htm?ProductNo=1293383",
       "name": "[RICOH] 리코 GR IV (GR4) [세기P&C 정품]",
       "status": "SOLD_OUT",
-      "detail": "pr_stock=Y hits=1 (stale: 연결 타임아웃 (사이트 응답 지연 또는 IP 차단 가능), last good 2026-06-17T09:30:55.849242+09:00) (stale: 연결 타임아웃 (사이트 응답 지연 또는 IP 차단 가능), last good 2026-06-17T09:41:12.054959+09:00)",
+      "detail": "pr_stock=Y hits=1 (stale: 연결 타임아웃 (사이트 응답 지연 또는 IP 차단 가능), last good 2026-06-17T09:30:55.849242+09:00) (stale: 연결 타임아웃 (사이트 응답 지연 또는 IP 차단 가능), last good 2026-06-17T09:41:12.054959+09:00) (stale: 연결 타임아웃 (사이트 응답 지연 또는 IP 차단 가능), last good 2026-06-17T09:51:06.254675+09:00)",
       "stale": true,
       "stale_reason": "연결 타임아웃 (사이트 응답 지연 또는 IP 차단 가능)"
     },
@@ -66,6 +66,14 @@
       "name": "리코 GR4 / GR IV",
       "status": "SOLD_OUT",
       "detail": "stock_number=0, is_soldout_icon=T, json_stock_max=None"
+    },
+    {
+      "site": "한국펜탁스",
+      "source_module": "plthink",
+      "url": "https://www.asahipentax.co.kr/product/detail.html?product_no=7580&cate_no=382&display_group=1",
+      "name": "[정품]리코 RICOH GR IV (GR4) 블랙 / LCD필름 + 청소셋",
+      "status": "SOLD_OUT",
+      "detail": "stock_number=0, is_soldout_icon=F, json_stock_max=None"
     }
   ]
 }
