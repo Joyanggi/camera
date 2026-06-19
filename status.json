@@ -1,13 +1,13 @@
 {
-  "checked_at": "2026-06-19T12:41:10.370271+09:00",
+  "checked_at": "2026-06-19T12:51:07.710690+09:00",
   "products": [
     {
       "site": "소니공홈",
       "source_module": "mac",
       "url": "https://store.sony.co.kr/product-view/102263765",
       "name": "DSC-RX100M7",
-      "status": "BUYABLE",
-      "detail": "saleStatusType=ONSALE, soldout=False, stock=-999"
+      "status": "SOLD_OUT",
+      "detail": "saleStatusType=ONSALE, soldout=True, stock=0"
     },
     {
       "site": "세기몰",
