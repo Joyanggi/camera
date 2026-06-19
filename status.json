@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-06-19T20:01:11.795595+09:00",
+  "checked_at": "2026-06-19T20:12:58.632936+09:00",
   "products": [
     {
       "site": "소니공홈",
@@ -23,7 +23,11 @@
       "url": "https://www.plthink.com/shop/shopdetail.html?branduid=1927702&search=%B8%AE%C4%DA&sort=sellcnt&xcode=008&mcode=114&scode=001&GfDT=Z253U1o%3D",
       "name": "유쾌한생각 - [RICOH] 리코 GR IV GR4 카메라 하이엔드 컴팩트",
       "status": "SOLD_OUT",
-      "detail": "ENP_VAR.soldOut=Y, sto_state NORMAL=0/SOLDOUT=1"
+      "detail": "ENP_VAR.soldOut=Y, sto_state NORMAL=0/SOLDOUT=1 (stale since 2026-06-19T20:01:11.795595+09:00: 연결 타임아웃 (사이트 응답 지연 또는 IP 차단 가능))",
+      "last_good_detail": "ENP_VAR.soldOut=Y, sto_state NORMAL=0/SOLDOUT=1",
+      "last_good_checked_at": "2026-06-19T20:01:11.795595+09:00",
+      "stale": true,
+      "stale_reason": "연결 타임아웃 (사이트 응답 지연 또는 IP 차단 가능)"
     },
     {
       "site": "유쾌한생각",
@@ -31,7 +35,11 @@
       "url": "https://www.plthink.com/shop/shopdetail.html?branduid=1926543&search=%B8%AE%C4%DA&sort=sellcnt&xcode=008&mcode=114&scode=001&GfDT=bm5%2BW15D",
       "name": "유쾌한생각 - [RICOH] 리코 GR III GR3 스트리트 에디션 Street 컴팩트 카메라",
       "status": "SOLD_OUT",
-      "detail": "ENP_VAR.soldOut=Y, sto_state NORMAL=0/SOLDOUT=1"
+      "detail": "ENP_VAR.soldOut=Y, sto_state NORMAL=0/SOLDOUT=1 (stale since 2026-06-19T20:01:11.795595+09:00: 연결 타임아웃 (사이트 응답 지연 또는 IP 차단 가능))",
+      "last_good_detail": "ENP_VAR.soldOut=Y, sto_state NORMAL=0/SOLDOUT=1",
+      "last_good_checked_at": "2026-06-19T20:01:11.795595+09:00",
+      "stale": true,
+      "stale_reason": "연결 타임아웃 (사이트 응답 지연 또는 IP 차단 가능)"
     },
     {
       "site": "유쾌한생각",
@@ -39,7 +47,11 @@
       "url": "https://www.plthink.com/shop/shopdetail.html?branduid=1926544&search=%B8%AE%C4%DA&sort=sellcnt&xcode=008&mcode=114&scode=001&GfDT=aml3U1U%3D",
       "name": "유쾌한생각 - [RICOH] 리코 GR III GR3 다이어리 에디션 Diary 컴팩트 카메라",
       "status": "SOLD_OUT",
-      "detail": "ENP_VAR.soldOut=Y, sto_state NORMAL=0/SOLDOUT=1"
+      "detail": "ENP_VAR.soldOut=Y, sto_state NORMAL=0/SOLDOUT=1 (stale since 2026-06-19T20:01:11.795595+09:00: 연결 타임아웃 (사이트 응답 지연 또는 IP 차단 가능))",
+      "last_good_detail": "ENP_VAR.soldOut=Y, sto_state NORMAL=0/SOLDOUT=1",
+      "last_good_checked_at": "2026-06-19T20:01:11.795595+09:00",
+      "stale": true,
+      "stale_reason": "연결 타임아웃 (사이트 응답 지연 또는 IP 차단 가능)"
     },
     {
       "site": "유쾌한생각",
@@ -47,7 +59,11 @@
       "url": "https://www.plthink.com/shop/shopdetail.html?branduid=1929763&search=%B8%AE%C4%DA&sort=sellcnt&xcode=008&mcode=114&scode=001&GfDT=a253Ulw%3D",
       "name": "유쾌한생각 - [RICOH] 리코 GR IV GR4 카메라 외장 플래시 세트",
       "status": "SOLD_OUT",
-      "detail": "ENP_VAR.soldOut=Y, sto_state NORMAL=0/SOLDOUT=1"
+      "detail": "ENP_VAR.soldOut=Y, sto_state NORMAL=0/SOLDOUT=1 (stale since 2026-06-19T20:01:11.795595+09:00: 연결 타임아웃 (사이트 응답 지연 또는 IP 차단 가능))",
+      "last_good_detail": "ENP_VAR.soldOut=Y, sto_state NORMAL=0/SOLDOUT=1",
+      "last_good_checked_at": "2026-06-19T20:01:11.795595+09:00",
+      "stale": true,
+      "stale_reason": "연결 타임아웃 (사이트 응답 지연 또는 IP 차단 가능)"
     },
     {
       "site": "컴퓨존",
