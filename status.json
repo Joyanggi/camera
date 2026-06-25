@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-06-25T13:30:55.988400+09:00",
+  "checked_at": "2026-06-25T13:40:48.903374+09:00",
   "products": [
     {
       "site": "소니공홈",
@@ -46,8 +46,8 @@
       "source_module": "plthink",
       "url": "https://www.plthink.com/shop/shopdetail.html?branduid=1929763&search=%B8%AE%C4%DA&sort=sellcnt&xcode=008&mcode=114&scode=001&GfDT=a253Ulw%3D",
       "name": "유쾌한생각 - [RICOH] 리코 GR IV GR4 카메라 외장 플래시 세트",
-      "status": "BUYABLE",
-      "detail": "ENP_VAR.soldOut=N, sto_state NORMAL=0/SOLDOUT=0"
+      "status": "SOLD_OUT",
+      "detail": "ENP_VAR.soldOut=Y, sto_state NORMAL=0/SOLDOUT=1"
     },
     {
       "site": "컴퓨존",
