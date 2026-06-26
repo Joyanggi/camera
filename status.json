@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-06-26T15:22:13.420589+09:00",
+  "checked_at": "2026-06-26T15:31:17.658375+09:00",
   "products": [
     {
       "site": "소니공홈",
@@ -15,11 +15,7 @@
       "url": "https://www.saeki.co.kr/item/itemDetail?itemId=PD00041564",
       "name": "RICOH GR IV",
       "status": "SOLD_OUT",
-      "detail": "schema=https://schema.org/OutOfStock, product=out of stock, recopick=oos, saleStatus=PD004030, noticeButton=Y (stale since 2026-06-26T15:10:52.047962+09:00: 연결 타임아웃 (사이트 응답 지연 또는 IP 차단 가능))",
-      "last_good_detail": "schema=https://schema.org/OutOfStock, product=out of stock, recopick=oos, saleStatus=PD004030, noticeButton=Y",
-      "last_good_checked_at": "2026-06-26T15:10:52.047962+09:00",
-      "stale": true,
-      "stale_reason": "연결 타임아웃 (사이트 응답 지연 또는 IP 차단 가능)"
+      "detail": "schema=https://schema.org/OutOfStock, product=out of stock, recopick=oos, saleStatus=PD004030, noticeButton=Y"
     },
     {
       "site": "유쾌한생각",
