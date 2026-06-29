@@ -1,13 +1,13 @@
 {
-  "checked_at": "2026-06-29T09:20:51.187061+09:00",
+  "checked_at": "2026-06-29T09:31:15.774131+09:00",
   "products": [
     {
       "site": "소니공홈",
       "source_module": "mac",
       "url": "https://store.sony.co.kr/product-view/102263765",
       "name": "DSC-RX100M7",
-      "status": "SOLD_OUT",
-      "detail": "saleStatusType=ONSALE, soldout=True, stock=0"
+      "status": "BUYABLE",
+      "detail": "saleStatusType=ONSALE, soldout=False, stock=-999"
     },
     {
       "site": "세기몰",
@@ -55,7 +55,11 @@
       "url": "https://www.compuzone.co.kr/product/product_detail.htm?ProductNo=1293383",
       "name": "[RICOH] 리코 GR IV (GR4) [세기P&C 정품]",
       "status": "SOLD_OUT",
-      "detail": "pr_stock=Y hits=1"
+      "detail": "pr_stock=Y hits=1 (stale since 2026-06-29T09:20:51.187061+09:00: 연결 타임아웃 (사이트 응답 지연 또는 IP 차단 가능))",
+      "last_good_detail": "pr_stock=Y hits=1",
+      "last_good_checked_at": "2026-06-29T09:20:51.187061+09:00",
+      "stale": true,
+      "stale_reason": "연결 타임아웃 (사이트 응답 지연 또는 IP 차단 가능)"
     },
     {
       "site": "DKC",
