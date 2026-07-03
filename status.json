@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-07-03T11:01:25.182202+09:00",
+  "checked_at": "2026-07-03T11:11:12.352068+09:00",
   "products": [
     {
       "site": "소니공홈",
@@ -13,7 +13,7 @@
       "site": "세기몰",
       "source_module": "saeki",
       "url": "https://www.saeki.co.kr/item/itemDetail?itemId=PD00041564",
-      "name": "RICOH GR IV",
+      "name": "RICOH GR IV | 세기몰",
       "status": "SOLD_OUT",
       "detail": "schema=https://schema.org/OutOfStock, product=out of stock, recopick=oos, saleStatus=PD004030, noticeButton=Y"
     },
