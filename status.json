@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-07-10T10:31:23.574231+09:00",
+  "checked_at": "2026-07-10T10:40:56.882404+09:00",
   "products": [
     {
       "site": "소니공홈",
@@ -29,17 +29,17 @@
       "site": "유쾌한생각",
       "source_module": "plthink",
       "url": "https://www.plthink.com/shop/shopdetail.html?branduid=1926543&search=%B8%AE%C4%DA&sort=sellcnt&xcode=008&mcode=114&scode=001&GfDT=bm5%2BW15D",
-      "name": "유쾌한생각 - [RICOH] 리코 GR III GR3 스트리트 에디션 Street 컴팩트 카메라",
-      "status": "SOLD_OUT",
-      "detail": "ENP_VAR.soldOut=Y, sto_state NORMAL=0/SOLDOUT=1"
+      "name": "유쾌한생각 branduid=1926543",
+      "status": "UNKNOWN",
+      "detail": "ENP_VAR.soldOut=None, sto_state NORMAL=0/SOLDOUT=0"
     },
     {
       "site": "유쾌한생각",
       "source_module": "plthink",
       "url": "https://www.plthink.com/shop/shopdetail.html?branduid=1926544&search=%B8%AE%C4%DA&sort=sellcnt&xcode=008&mcode=114&scode=001&GfDT=aml3U1U%3D",
-      "name": "유쾌한생각 - [RICOH] 리코 GR III GR3 다이어리 에디션 Diary 컴팩트 카메라",
-      "status": "SOLD_OUT",
-      "detail": "ENP_VAR.soldOut=Y, sto_state NORMAL=0/SOLDOUT=1"
+      "name": "유쾌한생각 branduid=1926544",
+      "status": "UNKNOWN",
+      "detail": "ENP_VAR.soldOut=None, sto_state NORMAL=0/SOLDOUT=0"
     },
     {
       "site": "유쾌한생각",
@@ -53,13 +53,9 @@
       "site": "컴퓨존",
       "source_module": "plthink",
       "url": "https://www.compuzone.co.kr/product/product_detail.htm?ProductNo=1293383",
-      "name": "[RICOH] 리코 GR IV (GR4) [세기P&C 정품]",
-      "status": "SOLD_OUT",
-      "detail": "pr_stock=Y hits=1 (stale since 2026-07-10T10:20:59.299686+09:00: 연결 타임아웃 (사이트 응답 지연 또는 IP 차단 가능))",
-      "last_good_detail": "pr_stock=Y hits=1",
-      "last_good_checked_at": "2026-07-10T10:20:59.299686+09:00",
-      "stale": true,
-      "stale_reason": "연결 타임아웃 (사이트 응답 지연 또는 IP 차단 가능)"
+      "name": "컴퓨존 ProductNo=1293383",
+      "status": "UNKNOWN",
+      "detail": "pr_stock=Y hits=0, buyBtn=N"
     },
     {
       "site": "DKC",
