@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-07-11T10:11:18.793904+09:00",
+  "checked_at": "2026-07-11T10:21:03.389266+09:00",
   "products": [
     {
       "site": "소니공홈",
@@ -55,11 +55,7 @@
       "url": "https://www.compuzone.co.kr/product/product_detail.htm?ProductNo=1293383",
       "name": "컴퓨존 ProductNo=1293383",
       "status": "UNKNOWN",
-      "detail": "pr_stock=Y hits=0, buyBtn=N (stale since 2026-07-11T10:01:15.684336+09:00: 연결 타임아웃 (사이트 응답 지연 또는 IP 차단 가능))",
-      "last_good_detail": "pr_stock=Y hits=0, buyBtn=N",
-      "last_good_checked_at": "2026-07-11T10:01:15.684336+09:00",
-      "stale": true,
-      "stale_reason": "연결 타임아웃 (사이트 응답 지연 또는 IP 차단 가능)"
+      "detail": "pr_stock=Y hits=0, buyBtn=N"
     },
     {
       "site": "DKC",
