@@ -262,12 +262,18 @@ body.has-buyable .topbar h1::after {
   .topbar-inner { align-items: flex-start; }
   .topbar h1 { font-size: 16px; }
   .meta {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     width: 100%;
-    flex-wrap: wrap;
     gap: 8px;
   }
-  #checkedAt { width: 100%; }
-  .refresh-btn { flex: 1 1 auto; }
+  #checkedAt { grid-column: 1 / -1; }
+  .refresh-btn {
+    min-width: 0;
+    width: 100%;
+    padding-inline: 4px;
+    white-space: nowrap;
+  }
   .stat .value { font-size: 20px; }
   .card { padding: 14px 16px; }
 }
