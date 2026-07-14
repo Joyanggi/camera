@@ -1,8 +1,7 @@
-name: Check stock
+# Scheduled operation ended on 2026-07-14 after the purchase goal was achieved.
+name: Check stock (archived, manual only)
 
 on:
-  schedule:
-    - cron: "*/10 * * * *"
   workflow_dispatch:
     inputs:
       test_slack:

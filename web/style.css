@@ -71,6 +71,23 @@ body.has-buyable .topbar h1::after {
   letter-spacing: -0.01em;
 }
 
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.archive-badge {
+  padding: 3px 8px;
+  border: 1px solid rgba(232, 169, 58, 0.45);
+  border-radius: 999px;
+  color: var(--warning);
+  background: var(--warning-bg);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .meta {
   display: flex;
   align-items: center;
@@ -114,7 +131,7 @@ body.has-buyable .topbar h1::after {
 .stat {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 14px 16px;
 }
 
@@ -145,7 +162,7 @@ body.has-buyable .topbar h1::after {
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 16px 18px;
   display: flex;
   flex-direction: column;
@@ -242,7 +259,15 @@ body.has-buyable .topbar h1::after {
 }
 
 @media (max-width: 600px) {
+  .topbar-inner { align-items: flex-start; }
   .topbar h1 { font-size: 16px; }
+  .meta {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  #checkedAt { width: 100%; }
+  .refresh-btn { flex: 1 1 auto; }
   .stat .value { font-size: 20px; }
   .card { padding: 14px 16px; }
 }

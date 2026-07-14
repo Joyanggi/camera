@@ -1,8 +1,6 @@
 const STATUS_URL_REMOTE =
   "https://raw.githubusercontent.com/Joyanggi/camera/main/status.json";
 const STATUS_URL_LOCAL = "../status.json";
-const REFRESH_INTERVAL_MS = 60 * 1000;
-const HARD_RELOAD_INTERVAL_MS = 5 * 60 * 1000;
 const PREV_STATUS_KEY = "prev_status_v1";
 
 const STATUS_META = {
@@ -351,7 +349,7 @@ async function refresh() {
     lastProducts = products;
 
     document.getElementById("checkedAt").textContent =
-      `마지막 확인: ${formatKST(data.checked_at)}`;
+      `마지막 기록: ${formatKST(data.checked_at)}`;
     const counts = renderSummary(products);
     renderCards(products);
     applyBuyableTheme(counts.buyable > 0);
@@ -430,10 +428,3 @@ document.getElementById("testBtn").addEventListener("click", () => {
 });
 updateNotifBtn();
 refresh();
-setInterval(refresh, REFRESH_INTERVAL_MS);
-
-// 5분마다 하드 새로고침. 테스트 진행 중이면 다음 주기로 미룸
-setInterval(() => {
-  if (testTimer) return;
-  location.reload();
-}, HARD_RELOAD_INTERVAL_MS);
